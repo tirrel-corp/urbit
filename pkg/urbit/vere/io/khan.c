@@ -19,7 +19,8 @@
     c3_l              sev_l;            //  number (of instance)
   } u3_khan;
 
-static const c3_c URB_SOCK_PATH[] = ".urb/khan.sock";
+#define URB_SOCK_PATH ".urb/khan.sock"
+#define SOCK_TEMPLATE "/tmp/urb-khan.XXXXXX"
 
 /* _khan_conn_cb(): socket connection callback.
 */
@@ -67,6 +68,60 @@ _khan_conn_cb(uv_stream_t* sem_u, c3_i tas_i)
   // socket, keeping one in text mode, and sending a 0x80 over the other.
 }
 
+/* _khan_ef_form(): start socket listener.
+*/
+static void
+_khan_ef_form(u3_khan* cop_u)
+{
+  // XX The full socket path is limited to about 108 characters, and we want it
+  // to be relative to the pier. So we make the socket in a temporary directory
+  // known to be within the length limit, then move it to the pier directory.
+  //
+  // pad_c is the template passed to mkdtemp. paf_c is the socket path within
+  // the temporary directory, passed to uv_pipe_bind. pax_c is the final socket
+  // location within the pier.
+  c3_c pad_c[] = SOCK_TEMPLATE;
+  c3_c paf_c[sizeof(SOCK_TEMPLATE "/s")];
+  c3_c pax_c[2048];
+  c3_i fid_i;
+
+  if ( NULL == mkdtemp(pad_c) ) {
+    u3l_log("khan: mkdtemp: %s\n", uv_strerror(errno));
+    u3_king_bail();
+  }
+
+  if ( sizeof(paf_c) != 1 + snprintf(paf_c, sizeof(paf_c), "%s/s", pad_c) ) {
+    u3l_log("khan: snprintf: failed (pad_c: %s)\n", pad_c);
+    u3_king_bail();
+  }
+
+  // TODO errors
+  uv_pipe_init(u3L, &cop_u->pyp_u, 0);
+
+  if ( sizeof(pax_c) < snprintf(pax_c, sizeof(pax_c), "%s/%s", u3_Host.dir_c,
+                                URB_SOCK_PATH) )
+  {
+    u3l_log("khan: snprintf: pier directory too long (%s)\n", u3_Host.dir_c);
+    unlink(pad_c);
+    u3_king_bail();
+  }
+
+  uv_pipe_bind(&cop_u->pyp_u, pax_c);
+  uv_listen((uv_stream_t*)&cop_u->pyp_u, 0, _khan_conn_cb);
+
+  if ( -1 == rename(paf_c, pax_c) ) {
+    u3l_log("khan: rename: %s\n", uv_strerror(errno));
+    unlink(paf_c);
+    rmdir(pad_c);
+    u3_king_bail();
+  }
+
+  unlink(pad_c);
+
+  u3l_log("khan: socket open\n");
+  cop_u->car_u.liv_o = c3y;
+}
+
 /* _khan_born_news(): initialization complete, open socket.
 */
 static void
@@ -76,36 +131,7 @@ _khan_born_news(u3_ovum* egg_u, u3_ovum_news new_e)
   u3_khan* cop_u = (u3_khan*)car_u;
 
   if ( u3_ovum_done == new_e ) {
-    car_u->liv_o = c3y;
-
-    // Open socket. The full socket path is limited to about 108 characters, and
-    // we want it to be relative to the pier. So we save our current path, chdir
-    // to the pier, open the socket at the desired path, then chdir back.
-    // Hopefully there aren't any threads.
-    {
-      c3_c pax_c[2048];
-
-      // XX needs better error handling
-      if ( NULL == getcwd(pax_c, sizeof(pax_c)) ) {
-        c3_assert(!"khan-getcwd");
-      }
-      else {
-        if ( 0 != chdir(u3_Host.dir_c) ) {
-          c3_assert(!"khan-chdir");
-        }
-        else {
-          // TODO handle errors
-          unlink(URB_SOCK_PATH);
-          uv_pipe_init(u3L, &cop_u->pyp_u, 0);
-          uv_pipe_bind(&cop_u->pyp_u, URB_SOCK_PATH);
-          uv_listen((uv_stream_t*)&cop_u->pyp_u, 0, _khan_conn_cb);
-
-          if ( 0 != chdir(pax_c) ) {
-            c3_assert(!"khan-back");
-          }
-        }
-      }
-    }
+    _khan_ef_form(cop_u);
   }
 }
 
