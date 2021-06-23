@@ -4,6 +4,8 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 #include <dirent.h>
 #include <uv.h>
 #include <errno.h>
@@ -68,11 +70,20 @@ _khan_conn_cb(uv_stream_t* sem_u, c3_i tas_i)
   // socket, keeping one in text mode, and sending a 0x80 over the other.
 }
 
+/* _khan_close_cb(): callback for uv_close; nop.
+*/
+static void
+_khan_close_cb(uv_handle_t* had_u)
+{
+}
+
 /* _khan_ef_form(): start socket listener.
 */
 static void
 _khan_ef_form(u3_khan* cop_u)
 {
+  c3_i sat_i;
+
   // XX The full socket path is limited to about 108 characters, and we want it
   // to be relative to the pier. So we make the socket in a temporary directory
   // known to be within the length limit, then move it to the pier directory.
@@ -92,31 +103,49 @@ _khan_ef_form(u3_khan* cop_u)
 
   if ( sizeof(paf_c) != 1 + snprintf(paf_c, sizeof(paf_c), "%s/s", pad_c) ) {
     u3l_log("khan: snprintf: failed (pad_c: %s)\n", pad_c);
-    u3_king_bail();
-  }
-
-  // TODO errors
-  uv_pipe_init(u3L, &cop_u->pyp_u, 0);
-
-  if ( sizeof(pax_c) < snprintf(pax_c, sizeof(pax_c), "%s/%s", u3_Host.dir_c,
-                                URB_SOCK_PATH) )
-  {
-    u3l_log("khan: snprintf: pier directory too long (%s)\n", u3_Host.dir_c);
     unlink(pad_c);
     u3_king_bail();
   }
 
-  uv_pipe_bind(&cop_u->pyp_u, pax_c);
-  uv_listen((uv_stream_t*)&cop_u->pyp_u, 0, _khan_conn_cb);
+  if ( sizeof(pax_c) < snprintf(pax_c, sizeof(pax_c), "%s/%s", u3_Host.dir_c,
+                                URB_SOCK_PATH) )
+  {
+    u3l_log("khan: snprintf: pier directory too long (max %zd, got %s)\n",
+            sizeof(((struct sockaddr_un*)0)->sun_path), u3_Host.dir_c);
+    rmdir(pad_c);
+    u3_king_bail();
+  }
+
+  if ( (sat_i = uv_pipe_init(u3L, &cop_u->pyp_u, 0)) < 0 ) {
+    u3l_log("khan: uv_pipe_init: %s\n", uv_strerror(sat_i));
+    rmdir(pad_c);
+    u3_king_bail();
+  }
+
+  if ( (sat_i = uv_pipe_bind(&cop_u->pyp_u, pax_c)) < 0 ) {
+    u3l_log("khan: uv_pipe_bind: %s\n", uv_strerror(sat_i));
+    rmdir(pad_c);
+    u3_king_bail();
+  }
+
+  if ( (sat_i = uv_listen((uv_stream_t*)&cop_u->pyp_u, 0,
+                          _khan_conn_cb)) < 0 ) {
+    u3l_log("khan: uv_listen: %s\n", uv_strerror(sat_i));
+    unlink(paf_c);
+    rmdir(pad_c);
+    uv_close((uv_handle_t*)&cop_u->pyp_u, _khan_close_cb);
+    u3_king_bail();
+  }
 
   if ( -1 == rename(paf_c, pax_c) ) {
     u3l_log("khan: rename: %s\n", uv_strerror(errno));
     unlink(paf_c);
     rmdir(pad_c);
+    uv_close((uv_handle_t*)&cop_u->pyp_u, _khan_close_cb);
     u3_king_bail();
   }
 
-  unlink(pad_c);
+  rmdir(pad_c);
 
   u3l_log("khan: socket open\n");
   cop_u->car_u.liv_o = c3y;
