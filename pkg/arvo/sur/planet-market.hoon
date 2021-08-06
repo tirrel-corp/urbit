@@ -5,23 +5,23 @@
   ==
 ::
 +$  referral-policy  [number-referrals=@ud =price]
-+$  record           [=ship code=cord =price =referral-policy]
++$  record           [=ship =price =referral-policy]
 +$  records          (set record)
 ::
 +$  update
-  $%  [%add-codes codes=(map ship cord)]
-      [%sell-random-codes n=@ud]
-      [%sell-codes codes=(set ship)]
-      [%remove-codes codes=(set ship)]
+  $%  [%add-ships ships=(set ship)]
+      [%sell-next-ships n=@ud]
+      [%sell-ships ships=(set ship)]
+      [%remove-ships ships=(set ship)]
       [%use-referral =ship]
       [%set-price =price]
       [%set-referral-policy =referral-policy]
   ==
 ::
 +$  ship-to-sell-date  (map ship time)
-+$  available-codes    (map ship cord)
++$  available-ships    (set ship)
 ::
-+$  sold-codes         ((mop time records) gth)
++$  sold-ships         ((mop time records) gth)
 ++  his                ((on time records) gth)
 --
 

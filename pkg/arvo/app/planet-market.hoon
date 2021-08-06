@@ -7,8 +7,8 @@
 +$  state-0
   $:  %0
       =price
-      =available-codes
-      =sold-codes
+      =available-ships
+      =sold-ships
       =ship-to-sell-date
       =referral-policy
   ==
@@ -21,8 +21,8 @@
 %+  verb  |
 ^-  agent:gall
 |_  =bowl:gall
-+*  this       .
-    def        ~(. (default-agent this %|) bowl)
++*  this  .
+    def   ~(. (default-agent this %|) bowl)
 ::
 ++  on-init   `this
 ++  on-save   !>(state)
@@ -47,67 +47,94 @@
   ++  planet-market-update
     |=  =update
     ^-  (quip card _state)
-    :-  (give /update^~ update)
     ?-    -.update
-        %add-codes
+        %add-ships
+      :-  (give /updates^~ update)
       ::  check that no added code has already been sold
       ::  then add them to the map
-      =/  codes  ~(tap by codes.update)
+      =/  ships  ~(tap in ships.update)
       |-
-      ?~  codes
+      ?~  ships
         state
-      =*  ship  -.i.codes
-      =*  code  +.i.codes
+      =*  ship  i.ships
+      ::  TODO:  check that ship is still owned by our star, perhaps
+      ::  add to a "pending but not verified" section?
+      ::  =/  code  *@ux
       ?:  (~(has by ship-to-sell-date) ship)
         !!
       %_  $
-        codes  t.codes
-        available-codes  (~(put by available-codes) ship code)
+        ships            t.ships
+        available-ships  (~(put in available-ships) ship)
       ==
     ::
-        %sell-random-codes
+        %sell-next-ships
       ::  check that available-codes has N items in it
       ::  if not, crash. if yes, then sell them
-      ?:  (gth n.update ~(wyt by available-codes))
+      ?:  (gth n.update len)
         !!
-      ::  TODO: randomly select N ships, then sell them
-      state
+      =|  i=@ud
+      =/  =records  (need (fall (get:his now) [~ ~]))
+      =/  ships     ~(tap in available-ships)
+      =|  ships-to-be-sold=(set ship)
+      =/  len       (lent ships)
+      |-
+      ?:  =(len i)
+        :-  (give /updates^~ [%sell-ships ships-to-be-sold])
+        state(sold-ships (put:on now.bowl records))
+      =*  ship  i.ships
+      %_  $
+        i                  +(i)
+        ships              t.ships
+        ships-to-be-sold   (~(put in ships-to-be-sold) ship)
+        ship-to-sell-date  (~(put by ship-to-sell-date) ship now.bowl)
+        records            (~(put in records) [ship price referral-policy])
+        available-ships    (~(del in available-ships) ship)
+      ==
     ::
-        %sell-codes
+        %sell-ships
+      :-  (give /updates^~ update)
       ::  check that all codes being sold are available
       ::  if not, crash. if yes, then sell them
-      =/  codes     ~(tap in codes.update)
+      =/  ships     ~(tap in ships.update)
       =/  =records  (need (fall (get:his now) [~ ~]))
       |-
-      ?~  codes
-        state(sold-codes (put:on now.bowl records))
-      =*  ship  i.codes
-      ~|  "cannot sell code that does not exist"
-      =/  code  (~(got by available-codes) ship)
-      $(records (~(put in records) [ship code price referral-policy]))
+      ?~  ships
+        state(sold-ships (put:on now.bowl records))
+      =*  ship  i.ships
+      ~|  "cannot sell ship that does not exist"
+      ?>  (~(has in available-ships) ship)
+      %_  $
+        records            (~(put in records) [ship price referral-policy])
+        available-ships    (~(del in available-ships) ship)
+        ship-to-sell-date  (~(put by ship-to-sell-date) ship now.bowl)
+      ==
     ::
-        %remove-codes
+        %remove-ships
+      :-  (give /updates^~ update)
       ::  check that all codes are available.
       ::  if not, crash. if yes, then remove them.
-      =/  codes  ~(tap in codes.update)
+      =/  ships  ~(tap in ships.update)
       |-
-      ?~  codes
+      ?~  ships
         state
-      =*  ship  i.codes
-      ~|  "cannot remove code that does not exist"
-      ?>  (~(has by available-codes) ship)
-      $(available-codes (~(del by available-codes) ship))
+      =*  ship  i.ships
+      ~|  "cannot remove ship that does not exist"
+      ?>  (~(has in available-ships) ship)
+      $(available-ships (~(del in available-ships) ship))
     ::
         %use-referral
+      :-  (give /updates^~ update)
       ::  check that a code is available and that the ship in question
       ::  has referrals left to give out.
       ::  if not, crash. if yes, then sell at the referral code price.
       state
     ::
         %set-price
+      :-  (give /updates^~ update)
       state(price price.update)
     ::
         %set-referral-policy
+      :-  (give /updates^~ update)
       state(referral-policy referral-policy.update)
     ==
   ::
