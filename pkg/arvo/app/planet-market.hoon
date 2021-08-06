@@ -1,37 +1,16 @@
 :: planet-market [landscape]
 ::
-/+  default-agent
+/-  *planet-market
+/+  default-agent, dbug, verb
 |%
 +$  card  card:agent:gall
-::
-+$  price
-  $%  [%price amount=@rd currency=@t]
-      [%free ~]
-  ==
-::
-+$  record  [=ship code=cord =price =referral-policy]
-::
-+$  referral-policy
-  $:  number-referrals=@ud
-      =price
-  ==
-::
 +$  state-0
   $:  %0
       =price
-      available-codes=(map ship cord)
-      sold-codes=(mop time record)
+      =available-codes
+      =sold-codes
+      =ship-to-sell-date
       =referral-policy
-  ==
-::
-+$  update
-  $:  [%add-codes codes=(map ship cord)
-      [%sell-random-codes n=@ud]
-      [%sell-codes codes=(set ship)]
-      [%remove-codes codes=(set ship)]
-      [%use-referral =ship]
-      [%set-price =price]
-      [%set-referral-policy =referral-policy]
   ==
 --
 ::
@@ -45,13 +24,13 @@
 +*  this       .
     def        ~(. (default-agent this %|) bowl)
 ::
-++  on-init   [~ this]
+++  on-init   `this
 ++  on-save   !>(state)
 ++  on-load
   |=  old-vase=vase
   ^-  (quip card _this)
   =/  old  !<(state-0 old-vase)
-  [~ this(state state-0)]
+  `this(state old)
 ::
 ++  on-poke
   |=  [=mark =vase]
@@ -73,23 +52,51 @@
         %add-codes
       ::  check that no added code has already been sold
       ::  then add them to the map
-      ?:  =(~(int by 
-      state
+      =/  codes  ~(tap by codes.update)
+      |-
+      ?~  codes
+        state
+      =*  ship  -.i.codes
+      =*  code  +.i.codes
+      ?:  (~(has by ship-to-sell-date) ship)
+        !!
+      %_  $
+        codes  t.codes
+        available-codes  (~(put by available-codes) ship code)
+      ==
     ::
         %sell-random-codes
       ::  check that available-codes has N items in it
       ::  if not, crash. if yes, then sell them
+      ?:  (gth n.update ~(wyt by available-codes))
+        !!
+      ::  TODO: randomly select N ships, then sell them
       state
     ::
         %sell-codes
       ::  check that all codes being sold are available
       ::  if not, crash. if yes, then sell them
-      state
+      =/  codes     ~(tap in codes.update)
+      =/  =records  (need (fall (get:his now) [~ ~]))
+      |-
+      ?~  codes
+        state(sold-codes (put:on now.bowl records))
+      =*  ship  i.codes
+      ~|  "cannot sell code that does not exist"
+      =/  code  (~(got by available-codes) ship)
+      $(records (~(put in records) [ship code price referral-policy]))
     ::
         %remove-codes
       ::  check that all codes are available.
       ::  if not, crash. if yes, then remove them.
-      state
+      =/  codes  ~(tap in codes.update)
+      |-
+      ?~  codes
+        state
+      =*  ship  i.codes
+      ~|  "cannot remove code that does not exist"
+      ?>  (~(has by available-codes) ship)
+      $(available-codes (~(del by available-codes) ship))
     ::
         %use-referral
       ::  check that a code is available and that the ship in question
@@ -115,7 +122,7 @@
   ^-  (quip card _this)
   ?>  (team:title our.bowl src.bowl)
   ?:  ?=([%updates ~] path)
-    ~
+    `this
   (on-watch:def path)
 ::
 ++  on-leave  on-leave:def
