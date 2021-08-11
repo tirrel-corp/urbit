@@ -5,7 +5,6 @@
 +$  spawn-input
   $:  id=@ud
       sig=@ux
-      address=@ux
       data=[address=@ux =ship]
       from=[=proxy:ntx =ship]
   ==
@@ -22,7 +21,7 @@
 =/  params=(map @t json)
   %-  ~(gas by *(map @t json))
   :~  [%sig s+(scot %x sig)]
-      [%address s+(scot %x address)]
+      [%address s+(scot %x address.data)]
     ::
       :+  %data
         %o
@@ -35,7 +34,7 @@
         %o
       %-  ~(gas by *(map @t json))
       :~  [%proxy s+proxy.from]
-          [%ship s+(scot %x ship.from)]
+          [%ship s+(scot %p ship.from)]
   ==  ==
 =/  =l2-tx:dice  %spawn
 =/  [cag=(unit cage) res=response:rpc]
