@@ -4,14 +4,28 @@
 |%
 +$  card  card:agent:gall
 +$  init-info
-  $:  card=*'4111111111111111'
-      expiration=*'10/25'
-      amount=*'1.00'
-      cvv=*'999'
-      zip=*'77777'
+  $:  amount=cord
+      $=  billing
+      $:  first-name=cord
+          last-name=cord
+          address1=cord
+          address2=cord
+          city=cord
+          state=cord
+          postal=cord
+          phone=cord
+          email=cord
+      ==
   ==
+  ::$:  card=*'4111111111111111'
+  ::    expiration=*'10/25'
+  ::    amount=*'1.00'
+  ::    cvv=*'999'
+  ::    zip=*'77777'
+  ::==
 +$  update
   $%  [%initiate-payment init-info]
+      [%asdf ~]
   ==
 +$  state-0
   $:  %0
@@ -33,9 +47,9 @@
 ::
 ++  on-init
   =/  =state-0
-    :+  %0
-      '2F822Rw39fx762MaV7Yy86jXGTC7sCDy'
-    'https://secure.networkmerchants.com/api/v2/three-step'
+    :^  %0  '2F822Rw39fx762MaV7Yy86jXGTC7sCDy'
+      'https://secure.networkmerchants.com/api/v2/three-step'
+    'https://pretendurl.com'
   :-  ~
   this(state state-0)
 ::
@@ -61,7 +75,62 @@
   ++  nmi-hook-update
     |=  =update
     ^-  (quip card _state)
-    `state
+    ?+    -.update  !!
+        %initiate-payment
+      =/  req  (request-step1 +.update)
+      =/  out  *outbound-config:iris
+      :-  [%pass /step1/[(scot %da now.bol)] %arvo %i %request req out]~
+      state
+    ==
+  ::
+  ++  request-step1
+    |=  init-info
+    ^-  request:http
+    :^  %'POST'  endpoint
+      ~
+    :-  ~
+    %-  xml-to-octs
+    ^-  manx
+    %+  parent:xml
+      %sale
+    :~  (child:xml %api-key api-key)
+        (child:xml %redirect-url redirect-url)
+        (child:xml %amount amount)
+      ::
+        %+  parent:xml
+          %billing
+        :~  (child:xml %first-name first-name.billing)
+            (child:xml %last-name last-name.billing)
+            (child:xml %address1 address1.billing)
+            (child:xml %address2 address2.billing)
+            (child:xml %city city.billing)
+            (child:xml %state state.billing)
+            (child:xml %postal postal.billing)
+            (child:xml %phone phone.billing)
+            (child:xml %email email.billing)
+        ==
+    ==
+  ::
+  ++  xml
+    |%
+    ++  parent
+      |=  [tag=term children=marl]
+      ^-  manx
+      :-  [tag ~]
+      children
+    ::
+    ++  child
+      |=  [tag=term body=cord]
+      ^-  manx
+      :+  [tag ~]
+        [[%$ [%$ (trip body)] ~] ~]
+      ~
+    --
+  ::
+  ++  xml-to-octs
+    |=  xml=manx
+    ^-  octs
+    (as-octt:mimes:html (en-xml:html xml))
   --
 ::
 ++  on-watch
@@ -81,6 +150,29 @@
   ==
 ::
 ++  on-agent  on-agent:def
-++  on-arvo   on-arvo:def
+++  on-arvo
+  |=  [=wire =sign-arvo]
+  ^-  (quip card:agent:gall _this)
+  |^
+  ?.  ?=(%http-response +<.sign-arvo)
+    (on-arvo:def wire sign-arvo)
+  =^  cards  state
+    (http-response wire client-response.sign-arvo)
+  [cards this]
+  ::
+  ++  http-response
+    |=  [=wire response=client-response:iris]
+    ^-  (quip card _state)
+    ::  ignore all but %finished
+    ?.  ?=(%finished -.response)
+      [~ state]
+    =/  data=(unit mime-data:iris)  full-file.response
+    ?~  data
+      :: data is null
+      [~ state]
+    ~&  `@t`q.data.u.data
+    [~ state]
+  --
+::
 ++  on-fail   on-fail:def
 --
