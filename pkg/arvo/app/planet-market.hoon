@@ -1,4 +1,4 @@
-:: planet-market [landscape]
+:: planet-market [tirrel]
 ::
 /-  *planet-market
 /+  default-agent, dbug, verb
