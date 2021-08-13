@@ -1,5 +1,6 @@
 :: nmi-hook [tirrel]
 ::
+::
 /-  *nmi-hook
 /+  default-agent, dbug, verb
 |%
@@ -31,8 +32,8 @@
 ++  on-init
   =/  =state-0
     :^  %0  '2F822Rw39fx762MaV7Yy86jXGTC7sCDy'
-      'https://secure.networkmerchants.com/api/v2/three-step'
-    'https://pretendurl.com'
+      'https://secure.networkmerchants.com/api/v2/three-step:443'
+    'https://urbit.studio'
   :-  ~
   this(state state-0)
 ::
@@ -62,15 +63,16 @@
         %initiate-payment
       =/  req  (request-step1 +.update)
       =/  out  *outbound-config:iris
-      :-  [%pass /step1/[(scot %da now.bol)] %arvo %i %request req out]~
-      state
+      :_  state
+      :-  [%pass /step1/[(scot %da now.bowl)] %arvo %i %request req out]~
     ==
   ::
   ++  request-step1
     |=  init-info
     ^-  request:http
     :^  %'POST'  endpoint
-      ~
+      :~  ['Content-type' 'text/xml']
+      ==
     :-  ~
     %-  xml-to-octs
     ^-  manx
@@ -113,6 +115,7 @@
   ++  xml-to-octs
     |=  xml=manx
     ^-  octs
+    ~&  [%xml (en-xml:html xml)]
     (as-octt:mimes:html (en-xml:html xml))
   --
 ::
@@ -144,7 +147,7 @@
   [cards this]
   ::
   ++  http-response
-    |=  [=wire response=client-response:iris]
+    |=  [=^wire response=client-response:iris]
     ^-  (quip card _state)
     ::  ignore all but %finished
     ?.  ?=(%finished -.response)
@@ -153,7 +156,7 @@
     ?~  data
       :: data is null
       [~ state]
-    ~&  `@t`q.data.u.data
+    ~&  [%http-response `@t`q.data.u.data]
     [~ state]
   --
 ::
