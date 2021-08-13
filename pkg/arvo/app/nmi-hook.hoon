@@ -1,32 +1,15 @@
 :: nmi-hook [tirrel]
 ::
+/-  *nmi-hook
 /+  default-agent, dbug, verb
 |%
 +$  card  card:agent:gall
-+$  init-info
-  $:  amount=cord
-      $=  billing
-      $:  first-name=cord
-          last-name=cord
-          address1=cord
-          address2=cord
-          city=cord
-          state=cord
-          postal=cord
-          phone=cord
-          email=cord
-      ==
-  ==
-  ::$:  card=*'4111111111111111'
-  ::    expiration=*'10/25'
-  ::    amount=*'1.00'
-  ::    cvv=*'999'
-  ::    zip=*'77777'
-  ::==
-+$  update
-  $%  [%initiate-payment init-info]
-      [%asdf ~]
-  ==
+::$:  card=*'4111111111111111'
+::    expiration=*'10/25'
+::    amount=*'1.00'
+::    cvv=*'999'
+::    zip=*'77777'
+::==
 +$  state-0
   $:  %0
       api-key=cord
