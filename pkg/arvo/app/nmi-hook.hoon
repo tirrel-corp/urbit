@@ -2,7 +2,7 @@
 ::
 ::
 /-  *nmi-hook
-/+  default-agent, dbug, verb
+/+  default-agent, dbug, verb, server
 |%
 +$  card  card:agent:gall
 ::$:  card=*'4111111111111111'
@@ -32,17 +32,23 @@
 ++  on-init
   =/  =state-0
     :^  %0  '2F822Rw39fx762MaV7Yy86jXGTC7sCDy'
-      'https://secure.networkmerchants.com/api/v2/three-step:443'
-    'https://urbit.studio'
-  :-  ~
+      'https://secure.networkmerchants.com/api/v2/three-step'
+    'https://urbit.studio/pay'
+  :-  [%pass /connect %arvo %e %connect [~ /'pay'] dap.bowl]~
   this(state state-0)
 ::
 ++  on-save   !>(state)
 ++  on-load
   |=  old-vase=vase
   ^-  (quip card _this)
-  =/  old  !<(state-0 old-vase)
-  `this(state old)
+  =/  =state-0
+    :^  %0  '2F822Rw39fx762MaV7Yy86jXGTC7sCDy'
+      'https://secure.networkmerchants.com/api/v2/three-step'
+    'https://urbit.studio/pay/step3.html'
+  :-  ~
+  this(state state-0)
+  ::=/  old  !<(state-0 old-vase)
+  ::`this(state old)
 ::
 ++  on-poke
   |=  [=mark =vase]
@@ -54,7 +60,61 @@
     =^  cards  state
       (nmi-hook-update !<(update vase))
     [cards this]
+  ::
+      %handle-http-request
+    =+  !<([eyre-id=@ta =inbound-request:eyre] vase)
+    :_  this
+    %+  give-simple-payload:app:server  eyre-id
+    (handle-http-request inbound-request)
   ==
+  ::
+  ++  handle-http-request
+    =,  server
+    |=  =inbound-request:eyre
+    |^
+    ^-  simple-payload:http
+    =/  req-line=request-line
+      %-  parse-request-line
+      url.request.inbound-request
+    =*  req-head  header-list.request.inbound-request
+    ?.  ?=(%'GET' method.request.inbound-request)
+      not-found:gen
+    (handle-get-request req-head req-line)
+    ::
+    ++  handle-get-request
+      =,  server
+      |=  [headers=header-list:http request-line]
+      ^-  simple-payload:http
+      =?  site  ?=([%'pay' *] site)
+        t.site
+      ?~  ext
+        $(ext `%html, site [%index ~])
+      =/  file=(unit octs)
+        (get-file-at /app/nmi site u.ext)
+      ?~  file   not-found:gen
+      ?+  u.ext  not-found:gen
+        %html  (html-response:gen u.file)
+        %js    (js-response:gen u.file)
+        %css   (css-response:gen u.file)
+        %png   (png-response:gen u.file)
+      ==
+    ::
+    ++  get-file-at
+      |=  [base=path file=path ext=@ta]
+      ^-  (unit octs)
+      ?.  ?=(?(%html %css %js %png) ext)
+        ~
+      =/  =path
+        :*  (scot %p our.bowl)
+            q.byk.bowl
+            (scot %da now.bowl)
+            (snoc (weld base file) ext)
+        ==
+      ?.  .^(? %cu path)  ~
+      %-  some
+      %-  as-octs:mimes:html
+      .^(@ %cx path)
+    --
   ::
   ++  nmi-hook-update
     |=  =update
@@ -64,7 +124,7 @@
       =/  req  (request-step1 +.update)
       =/  out  *outbound-config:iris
       :_  state
-      :-  [%pass /step1/[(scot %da now.bowl)] %arvo %i %request req out]~
+      [%pass /step1/[(scot %da now.bowl)] %arvo %i %request req out]~
     ==
   ::
   ++  request-step1
@@ -123,6 +183,8 @@
   |=  =path
   ^-  (quip card _this)
   ?>  (team:title our.bowl src.bowl)
+  ?:  ?=([%http-response *] path)
+    [~ this]
   ?:  ?=([%updates ~] path)
     `this
   (on-watch:def path)
@@ -140,6 +202,10 @@
   |=  [=wire =sign-arvo]
   ^-  (quip card:agent:gall _this)
   |^
+  ?:  ?=([%eyre %bound *] sign-arvo)
+    ~?  !accepted.sign-arvo
+      [dap.bowl "bind rejected!" binding.sign-arvo]
+    [~ this]
   ?.  ?=(%http-response +<.sign-arvo)
     (on-arvo:def wire sign-arvo)
   =^  cards  state
