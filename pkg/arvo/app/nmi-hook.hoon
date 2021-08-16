@@ -131,8 +131,7 @@
     |=  init-info
     ^-  request:http
     :^  %'POST'  endpoint
-      :~  ['Content-type' 'text/xml']
-      ==
+      ['Content-type' 'text/xml']~
     :-  ~
     %-  xml-to-octs
     ^-  manx
@@ -142,18 +141,18 @@
         (child:xml %redirect-url redirect-url)
         (child:xml %amount amount)
       ::
-        %+  parent:xml
-          %billing
-        :~  (child:xml %first-name first-name.billing)
-            (child:xml %last-name last-name.billing)
-            (child:xml %address1 address1.billing)
-            (child:xml %address2 address2.billing)
-            (child:xml %city city.billing)
-            (child:xml %state state.billing)
-            (child:xml %postal postal.billing)
-            (child:xml %phone phone.billing)
-            (child:xml %email email.billing)
-        ==
+        ::%+  parent:xml
+        ::  %billing
+        :::~  (child:xml %first-name first-name.billing)
+        ::    (child:xml %last-name last-name.billing)
+        ::    ::(child:xml %address1 address1.billing)
+        ::    ::(child:xml %address2 address2.billing)
+        ::    ::(child:xml %city city.billing)
+        ::    ::(child:xml %state state.billing)
+        ::    (child:xml %postal postal.billing)
+        ::    ::(child:xml %phone phone.billing)
+        ::    (child:xml %email email.billing)
+        ::==
     ==
   ::
   ++  xml
@@ -175,7 +174,6 @@
   ++  xml-to-octs
     |=  xml=manx
     ^-  octs
-    ~&  [%xml (en-xml:html xml)]
     (as-octt:mimes:html (en-xml:html xml))
   --
 ::
@@ -218,12 +216,44 @@
     ::  ignore all but %finished
     ?.  ?=(%finished -.response)
       [~ state]
-    =/  data=(unit mime-data:iris)  full-file.response
-    ?~  data
-      :: data is null
+    ?+    wire  !!
+        [%step1 @ ~]
+      =/  data=(unit mime-data:iris)  full-file.response
+      ?~  data
+        :: TODO: update record
+        [~ state]
+      =/  res=(unit manx)  (de-xml:html `@t`q.data.u.data)
+      ?~  res
+        !!  ::  TODO: update record
+      ::  TODO: parse out result-code, result-text, and form-url from response
+      ::  if result-code is not 100, fail and send error down
+      =/  m=(map @t @t)
+        %-  ~(gas by *(map @t @t))
+        ^-  (list [@t @t])
+        %+  murn  `(list manx)`c.u.res
+        |=  =manx
+        ^-  (unit [@t @t])
+        ?.  ?=(@ n.g.manx)
+          ~
+        ?~  c.manx
+          ~
+        ?~  a.g.i.c.manx
+          ~
+        ^-  (unit [@t @t])
+        :+  ~  n.g.manx
+        (crip v.i.a.g.i.c.manx)
+      =/  result-code  (~(get by m) 'result-code')
+      =/  result-text  (~(get by m) 'result-text')
+      =/  form-url  (~(get by m) 'form-url')
+      ?.  ?&(?=(^ result-code) ?=(^ result-text))
+        !!  ::  TODO: update record
+      ?.  =('100' u.result-code)
+        [~ state]  ::  TODO: update record
+      ~&  result+[u.result-code u.result-text `@t`(rsh [3 54] (need form-url))]
+      =/  action-token  `@t`(rsh [3 54] (need form-url))
+      ~&  url+`@t`(rap 3 redirect-url '?action=' action-token ~)
       [~ state]
-    ~&  [%http-response `@t`q.data.u.data]
-    [~ state]
+    ==
   --
 ::
 ++  on-fail   on-fail:def
