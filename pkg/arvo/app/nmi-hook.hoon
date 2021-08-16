@@ -11,11 +11,23 @@
 ::    cvv=*'999'
 ::    zip=*'77777'
 ::==
++$  result  [result-code=@ud result-text=@ta]
++$  transaction
+  $%  [%success =manx]  ::  TODO: parse out data
+      [%failure =init-info token=(unit @t) error=(unit result)]
+      [%pending =init-info token=(unit @t)]
+  ==
+::
++$  token-to-time  (map token=cord time)
++$  transactions  (map time transaction)
+::
 +$  state-0
   $:  %0
       api-key=cord
       endpoint=cord
       redirect-url=cord
+      =transactions
+      =token-to-time
   ==
 --
 ::
@@ -31,9 +43,13 @@
 ::
 ++  on-init
   =/  =state-0
-    :^  %0  '2F822Rw39fx762MaV7Yy86jXGTC7sCDy'
-      'https://secure.networkmerchants.com/api/v2/three-step'
-    'https://urbit.studio/pay'
+    :*  %0
+        '2F822Rw39fx762MaV7Yy86jXGTC7sCDy'
+        'https://secure.networkmerchants.com/api/v2/three-step'
+        'https://urbit.studio/pay'
+        ~
+        ~
+    ==
   :-  [%pass /connect %arvo %e %connect [~ /'pay'] dap.bowl]~
   this(state state-0)
 ::
@@ -42,9 +58,13 @@
   |=  old-vase=vase
   ^-  (quip card _this)
   =/  =state-0
-    :^  %0  '2F822Rw39fx762MaV7Yy86jXGTC7sCDy'
-      'https://secure.networkmerchants.com/api/v2/three-step'
-    'https://urbit.studio/pay/step3.html'
+    :*  %0
+        '2F822Rw39fx762MaV7Yy86jXGTC7sCDy'
+        'https://secure.networkmerchants.com/api/v2/three-step'
+        'https://urbit.studio/pay'
+        ~
+        ~
+    ==
   :-  ~
   this(state state-0)
   ::=/  old  !<(state-0 old-vase)
@@ -119,12 +139,23 @@
   ++  nmi-hook-update
     |=  =update
     ^-  (quip card _state)
-    ?+    -.update  !!
+    ?-    -.update
         %initiate-payment
-      =/  req  (request-step1 +.update)
-      =/  out  *outbound-config:iris
+      =/  =wire  /step1/(scot %da now.bowl)
+      =.  transactions
+        %+  ~(put by transactions)  now.bowl 
+        :+  %pending
+          +.update
+        ~
       :_  state
-      [%pass /step1/[(scot %da now.bowl)] %arvo %i %request req out]~
+      =-  [%pass wire %arvo %i %request - *outbound-config:iris]~
+      (request-step1 +.update)
+    ::
+        %complete-payment
+      =/  =wire  /step3/[token-id.update]
+      :_  state
+      =-  [%pass wire %arvo %i %request - *outbound-config:iris]~
+      (request-step3 token-id.update)
     ==
   ::
   ++  request-step1
@@ -153,6 +184,20 @@
         ::    ::(child:xml %phone phone.billing)
         ::    (child:xml %email email.billing)
         ::==
+    ==
+  ::
+  ++  request-step3
+    |=  token=cord
+    ^-  request:http
+    :^  %'POST'  endpoint
+      ['Content-type' 'text/xml']~
+    :-  ~
+    %-  xml-to-octs
+    ^-  manx
+    %+  parent:xml
+      %complete-action
+    :~  (child:xml %api-key api-key)
+        (child:xml %token-id token)
     ==
   ::
   ++  xml
@@ -211,26 +256,30 @@
   [cards this]
   ::
   ++  http-response
-    |=  [=^wire response=client-response:iris]
+    |=  [=^wire res=client-response:iris]
     ^-  (quip card _state)
     ::  ignore all but %finished
-    ?.  ?=(%finished -.response)
+    ?.  ?=(%finished -.res)
       [~ state]
     ?+    wire  !!
         [%step1 @ ~]
-      =/  data=(unit mime-data:iris)  full-file.response
-      ?~  data
-        :: TODO: update record
-        [~ state]
-      =/  res=(unit manx)  (de-xml:html `@t`q.data.u.data)
-      ?~  res
-        !!  ::  TODO: update record
-      ::  TODO: parse out result-code, result-text, and form-url from response
-      ::  if result-code is not 100, fail and send error down
+      =/  =time  (slav %da i.t.wire)
+      =/  tx=transaction  (~(got by transactions) time)
+      ?>  ?=(%pending -.tx)
+      ?~  full-file.res
+        =.  transactions  
+          %+  ~(put by transactions)  time
+          [%failure init-info.tx token.tx ~]
+        `state
+      =/  xml=(unit manx)  (de-xml:html `@t`q.data.u.full-file.res)
+      ?~  xml
+        =.  transactions  
+          %+  ~(put by transactions)  time
+          [%failure init-info.tx token.tx ~]
+        `state
       =/  m=(map @t @t)
         %-  ~(gas by *(map @t @t))
-        ^-  (list [@t @t])
-        %+  murn  `(list manx)`c.u.res
+        %+  murn  c.u.xml
         |=  =manx
         ^-  (unit [@t @t])
         ?.  ?=(@ n.g.manx)
@@ -239,19 +288,75 @@
           ~
         ?~  a.g.i.c.manx
           ~
-        ^-  (unit [@t @t])
         :+  ~  n.g.manx
         (crip v.i.a.g.i.c.manx)
       =/  result-code  (~(get by m) 'result-code')
       =/  result-text  (~(get by m) 'result-text')
       =/  form-url  (~(get by m) 'form-url')
       ?.  ?&(?=(^ result-code) ?=(^ result-text))
-        !!  ::  TODO: update record
+        =.  transactions  
+          %+  ~(put by transactions)  time
+          [%failure init-info.tx token.tx ~]
+        `state
       ?.  =('100' u.result-code)
-        [~ state]  ::  TODO: update record
+        =.  transactions  
+          %+  ~(put by transactions)  time
+          :^  %failure  init-info.tx  token.tx
+          `[(slav %ud u.result-code) u.result-text]
+        `state
       ~&  result+[u.result-code u.result-text `@t`(rsh [3 54] (need form-url))]
       =/  action-token  `@t`(rsh [3 54] (need form-url))
-      ~&  url+`@t`(rap 3 redirect-url '?action=' action-token ~)
+      ~&  url+`@t`(rap 3 'https://urbit.studio/pay/step2.html?action=' action-token ~)
+      =.  transactions  
+        %+  ~(put by transactions)  time
+        [%pending init-info.tx `action-token]
+      =.  token-to-time
+        (~(put by token-to-time) action-token time)
+      [~ state]
+    ::
+        [%step3 @ ~]
+      =*  token  i.t.wire
+      =/  =time  (~(got by token-to-time) token)
+      =/  tx=transaction  (~(got by transactions) time)
+      ?>  ?=(%pending -.tx)
+      ?~  full-file.res
+        =.  transactions  
+          %+  ~(put by transactions)  time
+          [%failure init-info.tx token.tx ~]
+        `state
+      =/  xml=(unit manx)  (de-xml:html `@t`q.data.u.full-file.res)
+      ?~  xml
+        =.  transactions  
+          %+  ~(put by transactions)  time
+          [%failure init-info.tx token.tx ~]
+        `state
+      =/  m=(map @t @t)
+        %-  ~(gas by *(map @t @t))
+        %+  murn  c.u.xml
+        |=  =manx
+        ^-  (unit [@t @t])
+        ?.  ?=(@ n.g.manx)
+          ~
+        ?~  c.manx
+          ~
+        ?~  a.g.i.c.manx
+          ~
+        :+  ~  n.g.manx
+        (crip v.i.a.g.i.c.manx)
+      ~&  m
+      =/  result-code  (~(get by m) 'result-code')
+      =/  result-text  (~(get by m) 'result-text')
+      ?.  ?&(?=(^ result-code) ?=(^ result-text))
+        =.  transactions  
+          %+  ~(put by transactions)  time
+          [%failure init-info.tx token.tx ~]
+        `state
+      ?.  =('100' u.result-code)
+        =.  transactions  
+          %+  ~(put by transactions)  time
+          :^  %failure  init-info.tx  token.tx
+          `[(slav %ud u.result-code) u.result-text]
+        `state
       [~ state]
     ==
   --

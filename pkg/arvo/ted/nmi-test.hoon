@@ -11,7 +11,7 @@
   :-  %nmi-hook-update
   !>  ^-  update
   :-  %initiate-payment
-  :*  amount='0.01'
+  :*  amount='1.01'
       :*  first-name='Peter'
           last-name='Adam'
           address1='Eden'

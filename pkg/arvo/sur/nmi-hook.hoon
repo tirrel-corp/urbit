@@ -16,7 +16,7 @@
 ::
 +$  update
   $%  [%initiate-payment init-info]
-      [%asdf ~]
+      [%complete-payment token-id=@t]
   ==
 --
 
