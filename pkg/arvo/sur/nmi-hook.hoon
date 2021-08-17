@@ -14,7 +14,7 @@
       ==
   ==
 ::
-+$  update
++$  action
   $%  [%initiate-payment init-info]
       [%complete-payment token-id=@t]
   ==

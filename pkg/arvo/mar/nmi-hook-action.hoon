@@ -1,15 +1,15 @@
 /-  *nmi-hook
 ::
-|_  upd=update
+|_  act=action
 ++  grad  %noun
 ++  grow
   |%
-  ++  noun  upd
-  ++  nmi-hook-update  upd
+  ++  noun  act
+  ++  nmi-hook-action  act
   --
 ::
 ++  grab
   |%
-  ++  noun  update
+  ++  noun  action
   --
 --

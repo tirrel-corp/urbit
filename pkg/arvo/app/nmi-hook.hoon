@@ -81,9 +81,9 @@
   ?>  (team:title our.bowl src.bowl)
   |^
   ?+    mark  (on-poke:def mark vase)
-      %nmi-hook-update
+      %nmi-hook-action
     =^  cards  state
-      (nmi-hook-update !<(update vase))
+      (nmi-hook-action !<(action vase))
     [cards this]
   ::
       %handle-http-request
@@ -140,28 +140,28 @@
       .^(@ %cx path)
     --
   ::
-  ++  nmi-hook-update
-    |=  =update
+  ++  nmi-hook-action
+    |=  =action
     ^-  (quip card _state)
     |^
-    ?-    -.update
+    ?-    -.action
         %initiate-payment
       =/  =wire  /step1/(scot %da now.bowl)
       :-  =-  [%pass wire %arvo %i %request -]~
-          [(request-step1 +.update) *outbound-config:iris]
+          [(request-step1 +.action) *outbound-config:iris]
       %_    state
           transactions
         %+  ~(put by transactions)  now.bowl
         :+  %pending
-          +.update
+          +.action
         ~
       ==
     ::
         %complete-payment
-      =/  =wire  /step3/[token-id.update]
+      =/  =wire  /step3/[token-id.action]
       :_  state
-      =-  [%pass wire %arvo %i %request - *outbound-config:iris]~
-      (request-step3 token-id.update)
+      =-  [%pass wire %arvo %i %request -]~
+      [(request-step3 token-id.action) *outbound-config:iris]
     ==
     ::
     ++  request-step1
@@ -271,7 +271,7 @@
       ?>  ?=(%pending -.tx)
       =/  result-code  (~(get by m) 'result-code')
       =/  result-text  (~(get by m) 'result-text')
-      =/  form-url  (~(get by m) 'form-url')
+      =/  form-url     (~(get by m) 'form-url')
       ?.  ?&(?=(^ result-code) ?=(^ result-text))
         %_    state
             transactions
