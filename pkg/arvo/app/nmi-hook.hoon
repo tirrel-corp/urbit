@@ -24,7 +24,8 @@
   ==
 ::
 +$  token-to-time  (map token=cord time)
-+$  transactions   (map time transaction)
++$  transactions   ((mop time transaction) gth)
+++  orm            ((on time transaction) gth)
 ::
 +$  state-0
   $:  %0
@@ -151,10 +152,8 @@
           [(request-step1 +.action) *outbound-config:iris]
       %_    state
           transactions
-        %+  ~(put by transactions)  now.bowl
-        :+  %pending
-          +.action
-        ~
+        %^  put:orm  transactions  now.bowl
+        [%pending +.action ~]
       ==
     ::
         %complete-payment
@@ -275,13 +274,13 @@
       ?.  ?&(?=(^ result-code) ?=(^ result-text))
         %_    state
             transactions
-          %+  ~(put by transactions)  time
+          %^  put:orm  transactions  time
           [%failure init-info.tx token.tx ~]
         ==
       ?.  =('100' u.result-code)
         %_    state
             transactions
-          %+  ~(put by transactions)  time
+          %^  put:orm  transactions  time
           :^  %failure  init-info.tx  token.tx
           `[(slav %ud u.result-code) u.result-text]
         ==
@@ -290,7 +289,7 @@
       ~&  url+`@t`(rap 3 'https://urbit.studio/pay/step2.html?action=' action-token ~)
       %_    state
           transactions
-        %+  ~(put by transactions)  time
+        %^  put:orm  transactions  time
         [%pending init-info.tx `action-token]
       ::
         token-to-time  (~(put by token-to-time) action-token time)
@@ -305,7 +304,7 @@
       =/  result-text  (~(get by m) 'result-text')
       %_    state
           transactions
-        %+  ~(put by transactions)  time
+        %^  put:orm  transactions  time
         ?.  ?&(?=(^ result-code) ?=(^ result-text))
           [%failure init-info.tx token.tx ~]
         ?.  =('100' u.result-code)
@@ -320,13 +319,13 @@
       |=  [=time full-file=(unit mime-data:iris)]
       ^-  (each [transaction (map @t @t)] (quip card _state))
       |^
-      =/  tx=transaction  (~(got by transactions) time)
+      =/  tx=transaction  (got:orm transactions time)
       ?>  ?=(%pending -.tx)
       ?~  full-file
         :+  %|  ~
         %_    state
             transactions
-          %+  ~(put by transactions)  time
+          %^  put:orm  transactions  time
           [%failure init-info.tx token.tx ~]
         ==
       =/  xml=(unit manx)
@@ -335,7 +334,7 @@
         :+  %|  ~
         %_    state
             transactions
-          %+  ~(put by transactions)  time
+          %^  put:orm  transactions  time
           [%failure init-info.tx token.tx ~]
         ==
       [%& [tx (map-from-xml-body u.xml)]]
