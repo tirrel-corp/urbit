@@ -12,8 +12,13 @@
 ::    zip=*'77777'
 ::==
 +$  result  [result-code=@ud result-text=@ta]
++$  finis
+  $:  transaction-id=@ud
+      authorization-code=@ud
+      cvv-result=@tas
+  ==
 +$  transaction
-  $%  [%success =manx]  ::  TODO: parse out data
+  $%  [%success =init-info token=(unit @t) =finis]
       [%failure =init-info token=(unit @t) error=(unit result)]
       [%pending =init-info token=(unit @t)]
   ==
@@ -142,14 +147,15 @@
     ?-    -.update
         %initiate-payment
       =/  =wire  /step1/(scot %da now.bowl)
-      =.  transactions
+      :-  =-  [%pass wire %arvo %i %request -]~
+          [(request-step1 +.update) *outbound-config:iris]
+      %_    state
+          transactions
         %+  ~(put by transactions)  now.bowl
         :+  %pending
           +.update
         ~
-      :_  state
-      =-  [%pass wire %arvo %i %request - *outbound-config:iris]~
-      (request-step1 +.update)
+      ==
     ::
         %complete-payment
       =/  =wire  /step3/[token-id.update]
@@ -261,49 +267,54 @@
     ++  process-step1
       |=  [=time tx=transaction m=(map @t @t)]
       ^-  (quip card _state)
+      :-  ~
       ?>  ?=(%pending -.tx)
       =/  result-code  (~(get by m) 'result-code')
       =/  result-text  (~(get by m) 'result-text')
       =/  form-url  (~(get by m) 'form-url')
       ?.  ?&(?=(^ result-code) ?=(^ result-text))
-        =.  transactions
+        %_    state
+            transactions
           %+  ~(put by transactions)  time
           [%failure init-info.tx token.tx ~]
-        `state
+        ==
       ?.  =('100' u.result-code)
-        =.  transactions
+        %_    state
+            transactions
           %+  ~(put by transactions)  time
           :^  %failure  init-info.tx  token.tx
           `[(slav %ud u.result-code) u.result-text]
-        `state
+        ==
       ~&  result+[u.result-code u.result-text `@t`(rsh [3 54] (need form-url))]
       =/  action-token  `@t`(rsh [3 54] (need form-url))
       ~&  url+`@t`(rap 3 'https://urbit.studio/pay/step2.html?action=' action-token ~)
-      =.  transactions
+      %_    state
+          transactions
         %+  ~(put by transactions)  time
         [%pending init-info.tx `action-token]
-      =.  token-to-time
-        (~(put by token-to-time) action-token time)
-      `state
+      ::
+        token-to-time  (~(put by token-to-time) action-token time)
+      ==
     ::
     ++  process-step3
       |=  [=time tx=transaction m=(map @t @t)]
       ^-  (quip card _state)
+      :-  ~
       ?>  ?=(%pending -.tx)
       =/  result-code  (~(get by m) 'result-code')
       =/  result-text  (~(get by m) 'result-text')
-      ?.  ?&(?=(^ result-code) ?=(^ result-text))
-        =.  transactions
-          %+  ~(put by transactions)  time
+      %_    state
+          transactions
+        %+  ~(put by transactions)  time
+        ?.  ?&(?=(^ result-code) ?=(^ result-text))
           [%failure init-info.tx token.tx ~]
-        `state
-      ?.  =('100' u.result-code)
-        =.  transactions
-          %+  ~(put by transactions)  time
+        ?.  =('100' u.result-code)
           :^  %failure  init-info.tx  token.tx
           `[(slav %ud u.result-code) u.result-text]
-        `state
-      `state
+        :^  %success  init-info.tx  token.tx
+        ::  TODO: parse result
+        *finis
+      ==
     ::
     ++  normalize-data
       |=  [=time full-file=(unit mime-data:iris)]
@@ -312,17 +323,21 @@
       =/  tx=transaction  (~(got by transactions) time)
       ?>  ?=(%pending -.tx)
       ?~  full-file
-        =.  transactions
+        :+  %|  ~
+        %_    state
+            transactions
           %+  ~(put by transactions)  time
           [%failure init-info.tx token.tx ~]
-        [%| `state]
+        ==
       =/  xml=(unit manx)
         (de-xml:html `@t`q.data.u.full-file)
       ?~  xml
-        =.  transactions
+        :+  %|  ~
+        %_    state
+            transactions
           %+  ~(put by transactions)  time
           [%failure init-info.tx token.tx ~]
-        [%| `state]
+        ==
       [%& [tx (map-from-xml-body u.xml)]]
       ::
       ++  map-from-xml-body
