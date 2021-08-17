@@ -11,7 +11,7 @@
 ::    cvv=*'999'
 ::    zip=*'77777'
 ::==
-+$  result  [result-code=@ud result-text=@ta]
++$  error  [result-code=@ud result-text=@ta]
 +$  finis
   $:  transaction-id=@ud
       authorization-code=@ud
@@ -19,7 +19,7 @@
   ==
 +$  transaction
   $%  [%success =init-info token=(unit @t) =finis]
-      [%failure =init-info token=(unit @t) error=(unit result)]
+      [%failure =init-info token=(unit @t) error=(unit error)]
       [%pending =init-info token=(unit @t)]
   ==
 ::
@@ -346,14 +346,10 @@
         %+  murn  c.xml
         |=  =manx
         ^-  (unit [@t @t])
-        ?.  ?=(@ n.g.manx)
-          ~
-        ?~  c.manx
-          ~
-        ?~  a.g.i.c.manx
-          ~
-        :+  ~  n.g.manx
-        (crip v.i.a.g.i.c.manx)
+        ?.  ?=(@ n.g.manx)  ~
+        ?~  c.manx          ~
+        ?~  a.g.i.c.manx    ~
+        [~ n.g.manx (crip v.i.a.g.i.c.manx)]
       --
     --
   --
@@ -363,7 +359,7 @@
   ^-  (quip card _this)
   ?>  (team:title our.bowl src.bowl)
   ?:  ?=([%http-response *] path)
-    [~ this]
+    `this
   ?:  ?=([%updates ~] path)
     `this
   (on-watch:def path)
