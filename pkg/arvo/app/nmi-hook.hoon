@@ -19,7 +19,7 @@
   ==
 ::
 +$  token-to-time  (map token=cord time)
-+$  transactions  (map time transaction)
++$  transactions   (map time transaction)
 ::
 +$  state-0
   $:  %0
@@ -116,13 +116,12 @@
         %html  (html-response:gen u.file)
         %js    (js-response:gen u.file)
         %css   (css-response:gen u.file)
-        %png   (png-response:gen u.file)
       ==
     ::
     ++  get-file-at
       |=  [base=path file=path ext=@ta]
       ^-  (unit octs)
-      ?.  ?=(?(%html %css %js %png) ext)
+      ?.  ?=(?(%html %css %js) ext)
         ~
       =/  =path
         :*  (scot %p our.bowl)
@@ -139,11 +138,12 @@
   ++  nmi-hook-update
     |=  =update
     ^-  (quip card _state)
+    |^
     ?-    -.update
         %initiate-payment
       =/  =wire  /step1/(scot %da now.bowl)
       =.  transactions
-        %+  ~(put by transactions)  now.bowl 
+        %+  ~(put by transactions)  now.bowl
         :+  %pending
           +.update
         ~
@@ -157,90 +157,72 @@
       =-  [%pass wire %arvo %i %request - *outbound-config:iris]~
       (request-step3 token-id.update)
     ==
-  ::
-  ++  request-step1
-    |=  init-info
-    ^-  request:http
-    :^  %'POST'  endpoint
-      ['Content-type' 'text/xml']~
-    :-  ~
-    %-  xml-to-octs
-    ^-  manx
-    %+  parent:xml
-      %sale
-    :~  (child:xml %api-key api-key)
-        (child:xml %redirect-url redirect-url)
-        (child:xml %amount amount)
-      ::
-        ::%+  parent:xml
-        ::  %billing
-        :::~  (child:xml %first-name first-name.billing)
-        ::    (child:xml %last-name last-name.billing)
-        ::    ::(child:xml %address1 address1.billing)
-        ::    ::(child:xml %address2 address2.billing)
-        ::    ::(child:xml %city city.billing)
-        ::    ::(child:xml %state state.billing)
-        ::    (child:xml %postal postal.billing)
-        ::    ::(child:xml %phone phone.billing)
-        ::    (child:xml %email email.billing)
-        ::==
-    ==
-  ::
-  ++  request-step3
-    |=  token=cord
-    ^-  request:http
-    :^  %'POST'  endpoint
-      ['Content-type' 'text/xml']~
-    :-  ~
-    %-  xml-to-octs
-    ^-  manx
-    %+  parent:xml
-      %complete-action
-    :~  (child:xml %api-key api-key)
-        (child:xml %token-id token)
-    ==
-  ::
-  ++  xml
-    |%
-    ++  parent
-      |=  [tag=term children=marl]
-      ^-  manx
-      :-  [tag ~]
-      children
     ::
-    ++  child
-      |=  [tag=term body=cord]
+    ++  request-step1
+      |=  init-info
+      ^-  request:http
+      :^  %'POST'  endpoint
+        ['Content-type' 'text/xml']~
+      :-  ~
+      %-  xml-to-octs
       ^-  manx
-      :+  [tag ~]
-        [[%$ [%$ (trip body)] ~] ~]
-      ~
+      %+  parent:xml
+        %sale
+      :~  (child:xml %api-key api-key)
+          (child:xml %redirect-url redirect-url)
+          (child:xml %amount amount)
+        ::
+          ::%+  parent:xml
+          ::  %billing
+          :::~  (child:xml %first-name first-name.billing)
+          ::    (child:xml %last-name last-name.billing)
+          ::    ::(child:xml %address1 address1.billing)
+          ::    ::(child:xml %address2 address2.billing)
+          ::    ::(child:xml %city city.billing)
+          ::    ::(child:xml %state state.billing)
+          ::    (child:xml %postal postal.billing)
+          ::    ::(child:xml %phone phone.billing)
+          ::    (child:xml %email email.billing)
+          ::==
+      ==
+    ::
+    ++  request-step3
+      |=  token=cord
+      ^-  request:http
+      :^  %'POST'  endpoint
+        ['Content-type' 'text/xml']~
+      :-  ~
+      %-  xml-to-octs
+      ^-  manx
+      %+  parent:xml
+        %complete-action
+      :~  (child:xml %api-key api-key)
+          (child:xml %token-id token)
+      ==
+    ::
+    ++  xml
+      |%
+      ++  parent
+        |=  [tag=term children=marl]
+        ^-  manx
+        :-  [tag ~]
+        children
+      ::
+      ++  child
+        |=  [tag=term body=cord]
+        ^-  manx
+        :+  [tag ~]
+          [[%$ [%$ (trip body)] ~] ~]
+        ~
+      --
+    ::
+    ++  xml-to-octs
+      |=  xml=manx
+      ^-  octs
+      (as-octt:mimes:html (en-xml:html xml))
     --
-  ::
-  ++  xml-to-octs
-    |=  xml=manx
-    ^-  octs
-    (as-octt:mimes:html (en-xml:html xml))
   --
 ::
-++  on-watch
-  |=  =path
-  ^-  (quip card _this)
-  ?>  (team:title our.bowl src.bowl)
-  ?:  ?=([%http-response *] path)
-    [~ this]
-  ?:  ?=([%updates ~] path)
-    `this
-  (on-watch:def path)
-::
-++  on-leave  on-leave:def
-++  on-peek
-  |=  =path
-  ^-  (unit (unit cage))
-  ?+    path  (on-peek:def path)
-    [%x %export ~]  ``noun+!>(state)
-  ==
-::
-++  on-agent  on-agent:def
 ++  on-arvo
   |=  [=wire =sign-arvo]
   ^-  (quip card:agent:gall _this)
@@ -258,48 +240,38 @@
   ++  http-response
     |=  [=^wire res=client-response:iris]
     ^-  (quip card _state)
-    ::  ignore all but %finished
-    ?.  ?=(%finished -.res)
-      [~ state]
-    ?+    wire  !!
+    |^
+    ?.  ?=(%finished -.res)  `state
+    ?+    wire  ~|('unknown request type coming from nmi-hook' !!)
         [%step1 @ ~]
       =/  =time  (slav %da i.t.wire)
-      =/  tx=transaction  (~(got by transactions) time)
+      =/  nd  (normalize-data time full-file.res)
+      ?.  ?=(%& -.nd)
+        +.nd
+      (process-step1 time +.nd)
+    ::
+        [%step3 @ ~]
+      =/  =time  (~(got by token-to-time) i.t.wire)
+      =/  nd  (normalize-data time full-file.res)
+      ?:  ?=(%& -.nd)
+        (process-step3 time +.nd)
+      +.nd
+    ==
+    ::
+    ++  process-step1
+      |=  [=time tx=transaction m=(map @t @t)]
+      ^-  (quip card _state)
       ?>  ?=(%pending -.tx)
-      ?~  full-file.res
-        =.  transactions  
-          %+  ~(put by transactions)  time
-          [%failure init-info.tx token.tx ~]
-        `state
-      =/  xml=(unit manx)  (de-xml:html `@t`q.data.u.full-file.res)
-      ?~  xml
-        =.  transactions  
-          %+  ~(put by transactions)  time
-          [%failure init-info.tx token.tx ~]
-        `state
-      =/  m=(map @t @t)
-        %-  ~(gas by *(map @t @t))
-        %+  murn  c.u.xml
-        |=  =manx
-        ^-  (unit [@t @t])
-        ?.  ?=(@ n.g.manx)
-          ~
-        ?~  c.manx
-          ~
-        ?~  a.g.i.c.manx
-          ~
-        :+  ~  n.g.manx
-        (crip v.i.a.g.i.c.manx)
       =/  result-code  (~(get by m) 'result-code')
       =/  result-text  (~(get by m) 'result-text')
       =/  form-url  (~(get by m) 'form-url')
       ?.  ?&(?=(^ result-code) ?=(^ result-text))
-        =.  transactions  
+        =.  transactions
           %+  ~(put by transactions)  time
           [%failure init-info.tx token.tx ~]
         `state
       ?.  =('100' u.result-code)
-        =.  transactions  
+        =.  transactions
           %+  ~(put by transactions)  time
           :^  %failure  init-info.tx  token.tx
           `[(slav %ud u.result-code) u.result-text]
@@ -307,32 +279,57 @@
       ~&  result+[u.result-code u.result-text `@t`(rsh [3 54] (need form-url))]
       =/  action-token  `@t`(rsh [3 54] (need form-url))
       ~&  url+`@t`(rap 3 'https://urbit.studio/pay/step2.html?action=' action-token ~)
-      =.  transactions  
+      =.  transactions
         %+  ~(put by transactions)  time
         [%pending init-info.tx `action-token]
       =.  token-to-time
         (~(put by token-to-time) action-token time)
-      [~ state]
+      `state
     ::
-        [%step3 @ ~]
-      =*  token  i.t.wire
-      =/  =time  (~(got by token-to-time) token)
+    ++  process-step3
+      |=  [=time tx=transaction m=(map @t @t)]
+      ^-  (quip card _state)
+      ?>  ?=(%pending -.tx)
+      =/  result-code  (~(get by m) 'result-code')
+      =/  result-text  (~(get by m) 'result-text')
+      ?.  ?&(?=(^ result-code) ?=(^ result-text))
+        =.  transactions
+          %+  ~(put by transactions)  time
+          [%failure init-info.tx token.tx ~]
+        `state
+      ?.  =('100' u.result-code)
+        =.  transactions
+          %+  ~(put by transactions)  time
+          :^  %failure  init-info.tx  token.tx
+          `[(slav %ud u.result-code) u.result-text]
+        `state
+      `state
+    ::
+    ++  normalize-data
+      |=  [=time full-file=(unit mime-data:iris)]
+      ^-  (each [transaction (map @t @t)] (quip card _state))
+      |^
       =/  tx=transaction  (~(got by transactions) time)
       ?>  ?=(%pending -.tx)
-      ?~  full-file.res
-        =.  transactions  
+      ?~  full-file
+        =.  transactions
           %+  ~(put by transactions)  time
           [%failure init-info.tx token.tx ~]
-        `state
-      =/  xml=(unit manx)  (de-xml:html `@t`q.data.u.full-file.res)
+        [%| `state]
+      =/  xml=(unit manx)
+        (de-xml:html `@t`q.data.u.full-file)
       ?~  xml
-        =.  transactions  
+        =.  transactions
           %+  ~(put by transactions)  time
           [%failure init-info.tx token.tx ~]
-        `state
-      =/  m=(map @t @t)
+        [%| `state]
+      [%& [tx (map-from-xml-body u.xml)]]
+      ::
+      ++  map-from-xml-body
+        |=  xml=manx
+        ^-  (map @t @t)
         %-  ~(gas by *(map @t @t))
-        %+  murn  c.u.xml
+        %+  murn  c.xml
         |=  =manx
         ^-  (unit [@t @t])
         ?.  ?=(@ n.g.manx)
@@ -343,23 +340,28 @@
           ~
         :+  ~  n.g.manx
         (crip v.i.a.g.i.c.manx)
-      ~&  m
-      =/  result-code  (~(get by m) 'result-code')
-      =/  result-text  (~(get by m) 'result-text')
-      ?.  ?&(?=(^ result-code) ?=(^ result-text))
-        =.  transactions  
-          %+  ~(put by transactions)  time
-          [%failure init-info.tx token.tx ~]
-        `state
-      ?.  =('100' u.result-code)
-        =.  transactions  
-          %+  ~(put by transactions)  time
-          :^  %failure  init-info.tx  token.tx
-          `[(slav %ud u.result-code) u.result-text]
-        `state
-      [~ state]
-    ==
+      --
+    --
   --
 ::
+++  on-watch
+  |=  =path
+  ^-  (quip card _this)
+  ?>  (team:title our.bowl src.bowl)
+  ?:  ?=([%http-response *] path)
+    [~ this]
+  ?:  ?=([%updates ~] path)
+    `this
+  (on-watch:def path)
+::
+++  on-peek
+  |=  =path
+  ^-  (unit (unit cage))
+  ?+    path  (on-peek:def path)
+    [%x %export ~]  ``noun+!>(state)
+  ==
+::
+++  on-leave  on-leave:def
+++  on-agent  on-agent:def
 ++  on-fail   on-fail:def
 --
