@@ -89,27 +89,51 @@
   ::
       %handle-http-request
     =+  !<([eyre-id=@ta =inbound-request:eyre] vase)
+    =|  sim=simple-payload:http
+    =^  cards  sim
+      (handle-http-request eyre-id inbound-request)
     :_  this
-    %+  give-simple-payload:app:server  eyre-id
-    (handle-http-request inbound-request)
+    %+  weld  cards
+    (give-simple-payload:app:server eyre-id sim)
   ==
   ::
   ++  handle-http-request
-    =,  server
-    |=  =inbound-request:eyre
+    |=  [eyre-id=@ta =inbound-request:eyre]
     |^
-    ^-  simple-payload:http
-    =/  req-line=request-line
-      %-  parse-request-line
+    ^-  [(list card) simple-payload:http]
+    =/  req-line=request-line:server
+      %-  parse-request-line:server
       url.request.inbound-request
     =*  req-head  header-list.request.inbound-request
-    ?.  ?=(%'GET' method.request.inbound-request)
-      not-found:gen
-    (handle-get-request req-head req-line)
+    =*  req-body  body.request.inbound-request
+    ?:  ?=(%'GET' method.request.inbound-request)
+      `(handle-get-request req-head req-line)
+    ?:  ?=(%'POST' method.request.inbound-request)
+      (handle-post-request req-head req-line req-body)
+    `not-found:gen:server
+    ::
+    ++  handle-post-request
+      =*  srv  server
+      |=  [headers=header-list:http req=request-line:srv bod=(unit octs)]
+      =/  [auth-key=cord =action]
+        (dejs (need (de-json:html `@t`q:(need bod))))
+      :_  [[201 ~] ~]
+      =-  [%pass /post-request/[eyre-id] %agent [our dap]:bowl %poke -]~
+      [%nmi-hook-action !>(action)]
+    ::
+    ++  dejs
+      =,  dejs:format
+      %-  ot
+      :~  auth-key+so
+          :-  %action
+          %-  of
+          :~  [%initiate-payment so]
+              [%complete-payment so]
+      ==  ==
     ::
     ++  handle-get-request
-      =,  server
-      |=  [headers=header-list:http request-line]
+      =*  srv  server
+      |=  [headers=header-list:http request-line:srv]
       ^-  simple-payload:http
       =?  site  ?=([%'pay' *] site)
         t.site
@@ -117,11 +141,11 @@
         $(ext `%html, site [%index ~])
       =/  file=(unit octs)
         (get-file-at /app/nmi site u.ext)
-      ?~  file   not-found:gen
-      ?+  u.ext  not-found:gen
-        %html  (html-response:gen u.file)
-        %js    (js-response:gen u.file)
-        %css   (css-response:gen u.file)
+      ?~  file   not-found:gen:srv
+      ?+  u.ext  not-found:gen:srv
+        %html  (html-response:gen:srv u.file)
+        %js    (js-response:gen:srv u.file)
+        %css   (css-response:gen:srv u.file)
       ==
     ::
     ++  get-file-at
