@@ -35,6 +35,7 @@
       =transactions
       =token-to-time
   ==
+::  TODO: add rate-limits for POST requests
 --
 ::
 =|  state-0
@@ -115,17 +116,22 @@
     ++  handle-post-request
       =*  srv  server
       |=  [headers=header-list:http req=request-line:srv bod=(unit octs)]
-      =/  [auth-key=cord =action]
-        (dejs (need (de-json:html `@t`q:(need bod))))
+      ?~  bod
+        `[[400 ~] ~]
+      ?~  maybe-json=(de-json:html q.u.bod)
+        `[[400 ~] ~]
+      =/  act=(each action tang)
+        (mule |.((dejs u.maybe-json)))
+      ?:  ?=(%| -.act)
+        `[[400 ~] ~]
       :_  [[201 ~] ~]
       =-  [%pass /post-request/[eyre-id] %agent [our dap]:bowl %poke -]~
-      [%nmi-hook-action !>(action)]
+      [%nmi-hook-action !>(`action`p.act)]
     ::
     ++  dejs
       =,  dejs:format
       %-  ot
-      :~  auth-key+so
-          :-  %action
+      :~  :-  %action
           %-  of
           :~  [%initiate-payment so]
               [%complete-payment so]
