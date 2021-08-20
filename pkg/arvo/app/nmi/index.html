@@ -18,6 +18,7 @@
       </form>
     </div>
     <div id="step3" style="display:none;">
+      <h2 id="step3-status"></h1>
     </div>
     <script type="text/javascript">
       let startPayment = async () => {
@@ -87,7 +88,8 @@
             throw new Error('Something went wrong');
           }
         }).then(res => {
-          console.log("step 3", res);
+          let status = document.getElementById('step3-status');
+          status.innerText = "Payment Successful!"
         })
         .catch((error) => {
           window.location.replace("http://urbit.studio/pay");
