@@ -23,9 +23,11 @@
       [%pending =init-info token=(unit @t)]
   ==
 ::
-+$  token-to-time  (map token=cord time)
-+$  transactions   ((mop time transaction) gth)
-++  orm            ((on time transaction) gth)
++$  request-to-token  (map request-id=cord token=cord)
++$  token-to-request  (map token=cord request-id=cord)
++$  request-to-time   (map request-id=cord time)
++$  transactions      ((mop time transaction) gth)
+++  orm               ((on time transaction) gth)
 ::
 +$  state-0
   $:  %0
@@ -33,7 +35,9 @@
       endpoint=cord
       redirect-url=cord
       =transactions
-      =token-to-time
+      =request-to-time
+      =request-to-token
+      =token-to-request
   ==
 ::  TODO: add rate-limits for POST requests
 --
@@ -56,6 +60,8 @@
         'https://urbit.studio/pay'
         ~
         ~
+        ~
+        ~
     ==
   :-  [%pass /connect %arvo %e %connect [~ /'pay'] dap.bowl]~
   this(state state-0)
@@ -69,6 +75,8 @@
         '2F822Rw39fx762MaV7Yy86jXGTC7sCDy'
         'https://secure.networkmerchants.com/api/v2/three-step'
         'https://urbit.studio/pay'
+        ~
+        ~
         ~
         ~
     ==
@@ -93,6 +101,8 @@
     =|  sim=simple-payload:http
     =^  cards  sim
       (handle-http-request eyre-id inbound-request)
+    =?  request-to-time  ?=(%'POST' method.request.inbound-request)
+      (~(put by request-to-time) eyre-id now.bowl)
     :_  this
     %+  weld  cards
     (give-simple-payload:app:server eyre-id sim)
@@ -113,6 +123,11 @@
       (handle-post-request req-head req-line req-body)
     `not-found:gen:server
     ::
+    +$  partial-action
+      $%  [%initiate-payment amount=cord]
+          [%complete-payment token=cord]
+      ==
+    ::
     ++  handle-post-request
       =*  srv  server
       |=  [headers=header-list:http req=request-line:srv bod=(unit octs)]
@@ -120,39 +135,58 @@
         `[[400 ~] ~]
       ?~  maybe-json=(de-json:html q.u.bod)
         `[[400 ~] ~]
-      =/  act=(each action tang)
+      =/  act=(each partial-action tang)
         (mule |.((dejs u.maybe-json)))
       ?:  ?=(%| -.act)
         `[[400 ~] ~]
-      :_  [[201 ~] ~]
-      =-  [%pass /post-request/[eyre-id] %agent [our dap]:bowl %poke -]~
-      [%nmi-hook-action !>(`action`p.act)]
+      ?-    -.p.act
+          %initiate-payment
+        =/  =action  [-.p.act amount.p.act eyre-id]
+        :_  [[201 ~] `(json-to-octs:srv s+eyre-id)]
+        =-  [%pass /post-req/[eyre-id] %agent [our dap]:bowl %poke -]~
+        [%nmi-hook-action !>(action)]
+      ::
+          %complete-payment
+        =/  =action  [-.p.act token.p.act]
+        ?~  maybe-request=(~(get by token-to-request) token.p.act)
+          ~&  %failed
+          `[[400 ~] ~]
+        :_  [[201 ~] `(json-to-octs:srv s+eyre-id)]
+        =-  [%pass /post-req/[eyre-id] %agent [our dap]:bowl %poke -]~
+        [%nmi-hook-action !>(action)]
+      ==
     ::
     ++  dejs
       =,  dejs:format
-      %-  ot
-      :~  :-  %action
-          %-  of
-          :~  [%initiate-payment so]
-              [%complete-payment so]
-      ==  ==
+      %-  of
+      :~  [%initiate-payment so]
+          [%complete-payment so]
+      ==
     ::
     ++  handle-get-request
       =*  srv  server
-      |=  [headers=header-list:http request-line:srv]
+      |=  [hed=header-list:http req=request-line:srv]
       ^-  simple-payload:http
-      =?  site  ?=([%'pay' *] site)
-        t.site
-      ?~  ext
-        $(ext `%html, site [%index ~])
-      =/  file=(unit octs)
-        (get-file-at /app/nmi site u.ext)
-      ?~  file   not-found:gen:srv
-      ?+  u.ext  not-found:gen:srv
-        %html  (html-response:gen:srv u.file)
-        %js    (js-response:gen:srv u.file)
-        %css   (css-response:gen:srv u.file)
-      ==
+      =?  site.req  ?=([%'pay' *] site.req)
+        t.site.req
+      ?~  ext.req
+        $(ext.req `%html, site.req [%index ~])
+      ?.  ?=(%json u.ext.req)
+        =/  file=(unit octs)
+          (get-file-at /app/nmi site.req u.ext.req)
+        ?~  file   not-found:gen:srv
+        ?+  u.ext.req  not-found:gen:srv
+          %html  (html-response:gen:srv u.file)
+          %js    (js-response:gen:srv u.file)
+          %css   (css-response:gen:srv u.file)
+        ==
+      ?~  site.req
+        not-found:gen:srv
+      =/  maybe-token  (~(get by request-to-token) i.site.req)
+      ?~  maybe-token
+        not-found:gen:srv
+      %-  json-response:gen:srv
+      s+u.maybe-token
     ::
     ++  get-file-at
       |=  [base=path file=path ext=@ta]
@@ -177,13 +211,14 @@
     |^
     ?-    -.action
         %initiate-payment
-      =/  =wire  /step1/(scot %da now.bowl)
+      =/  =time  (~(got by request-to-time) request-id.action)
+      =/  =wire  /step1/[request-id.action]
       :-  =-  [%pass wire %arvo %i %request -]~
-          [(request-step1 +.action) *outbound-config:iris]
+          [(request-step1 info.action) *outbound-config:iris]
       %_    state
           transactions
-        %^  put:orm  transactions  now.bowl
-        [%pending +.action ~]
+        %^  put:orm  transactions  time
+        [%pending info.action ~]
       ==
     ::
         %complete-payment
@@ -279,25 +314,26 @@
     ?.  ?=(%finished -.res)  `state
     ?+    wire  ~|('unknown request type coming from nmi-hook' !!)
         [%step1 @ ~]
-      =/  =time  (slav %da i.t.wire)
-      =/  nd  (normalize-data time full-file.res)
+      =/  request-id  i.t.wire
+      =/  nd  (normalize-data request-id full-file.res)
       ?.  ?=(%& -.nd)
         +.nd
-      (process-step1 time +.nd)
+      (process-step1 request-id +.nd)
     ::
         [%step3 @ ~]
-      =/  =time  (~(got by token-to-time) i.t.wire)
-      =/  nd  (normalize-data time full-file.res)
+      =/  request-id  (~(got by token-to-request) i.t.wire)
+      =/  nd  (normalize-data request-id full-file.res)
       ?:  ?=(%& -.nd)
-        (process-step3 time +.nd)
+        (process-step3 request-id +.nd)
       +.nd
     ==
     ::
     ++  process-step1
-      |=  [=time tx=transaction m=(map @t @t)]
+      |=  [request-id=cord tx=transaction m=(map @t @t)]
       ^-  (quip card _state)
       :-  ~
       ?>  ?=(%pending -.tx)
+      =/  =time  (~(got by request-to-time) request-id)
       =/  result-code  (~(get by m) 'result-code')
       =/  result-text  (~(get by m) 'result-text')
       =/  form-url     (~(get by m) 'form-url')
@@ -314,24 +350,24 @@
           :^  %failure  init-info.tx  token.tx
           `[(slav %ud u.result-code) u.result-text]
         ==
-      ~&  result+[u.result-code u.result-text `@t`(rsh [3 54] (need form-url))]
       =/  action-token  `@t`(rsh [3 54] (need form-url))
-      ~&  url+`@t`(rap 3 'https://urbit.studio/pay/step2.html?action=' action-token ~)
       %_    state
           transactions
         %^  put:orm  transactions  time
         [%pending init-info.tx `action-token]
       ::
-        token-to-time  (~(put by token-to-time) action-token time)
+        request-to-token  (~(put by request-to-token) request-id action-token)
+        token-to-request  (~(put by token-to-request) action-token request-id)
       ==
     ::
     ++  process-step3
-      |=  [=time tx=transaction m=(map @t @t)]
+      |=  [request-id=cord tx=transaction m=(map @t @t)]
       ^-  (quip card _state)
       :-  ~
       ?>  ?=(%pending -.tx)
       =/  result-code  (~(get by m) 'result-code')
       =/  result-text  (~(get by m) 'result-text')
+      =/  =time  (~(got by request-to-time) request-id)
       %_    state
           transactions
         %^  put:orm  transactions  time
@@ -340,17 +376,24 @@
         ?.  =('100' u.result-code)
           :^  %failure  init-info.tx  token.tx
           `[(slav %ud u.result-code) u.result-text]
+        ~&  %success
         :^  %success  init-info.tx  token.tx
         ::  TODO: parse result
         *finis
+      ::
+        request-to-token  (~(del by request-to-token) request-id)
+        request-to-time  (~(del by request-to-time) request-id)
+        token-to-request  (~(del by token-to-request) (need token.tx))
       ==
     ::
     ++  normalize-data
-      |=  [=time full-file=(unit mime-data:iris)]
+      |=  [request-id=cord full-file=(unit mime-data:iris)]
       ^-  (each [transaction (map @t @t)] (quip card _state))
       |^
+      =/  =time  (~(got by request-to-time) request-id)
       =/  tx=transaction  (got:orm transactions time)
-      ?>  ?=(%pending -.tx)
+      ?.  ?=(%pending -.tx)
+        [%| ~ state]
       ?~  full-file
         :+  %|  ~
         %_    state

@@ -15,8 +15,8 @@
   ==
 ::
 +$  action
-  $%  [%initiate-payment init-info]
-      [%complete-payment token-id=@t]
+  $%  [%initiate-payment info=init-info request-id=cord]
+      [%complete-payment token-id=cord]
   ==
 --
 
