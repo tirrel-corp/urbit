@@ -7,20 +7,22 @@
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
   </head>
   <body class="sans-serif w-100 h-100 pa2 flex items-center justify-center">
-    <div class="flex flex-column w-80 h-75 mw6 pt1 pl4 pr4 pb4 ba b--gray br1">
-      <h1 class="f3 lh-title">Planet Market</h1>
-      <div id="step1" style="display:none;">
+    <div class="flex flex-column w-80 h-75 h-50-ns mw6 pa2 ba b--gray br1">
+      <h1 class="f3 tc lh-title">Planet Market</h1>
+      <div id="step1" class="flex w-100 h-100 justify-center items-center" style="display:none;">
         <button id="step1-button" class="f5 button-reset br1 bg-black b--none mw-5 pt2 pb2 pl4 pr4 white pointer dim">
           Buy a Planet
         </button>
       </div>
-      <div id="step2" style="display:none;">
-        <p class="lh-copy mb3">Enter Card Details: </p>
-        <form class="w-50" id="step2-form" method="POST" action="">
-          <input class="db pa1 ba bw1 w-100 mb3" name="billing-cc-number" type="text" value="4111111111111111" />
-          <span class="flex mb3">
-            <input class="input-reset w-40 pa1 ba bw1 mw3 mr3" name="billing-cc-exp" type="text" value="10/12" />
-            <input class="input-reset w-40 pa1 ba bw1 mw3" name="cvv" type="text" value="999" />
+      <div id="step2" class="h-75 flex flex-column justify-center items-center" style="display:none;">
+        <p class="lh-copy mb3 w-100 w-80-ns">Enter Card Details: </p>
+        <form id="step2-form" class="w-100 w-80-ns" method="POST" action="">
+          <span class="flex flex-wrap w-100 items-center" >
+            <input class="pa1 ba bw1 mb3 mr2" name="billing-cc-number" type="text" value="4111111111111111" />
+            <span class="flex w-60 w-40-ns mb3">
+              <input class="input-reset w-40 pa1 ba bw1 mw3 mr2" name="billing-cc-exp" type="text" value="10/12" />
+              <input class="input-reset w-40 pa1 ba bw1 mw3" name="cvv" type="text" value="999" />
+            </span>
           </span>
           <input class="f5 input-reset br1 bg-black b--none mw-5 pt2 pb2 pl4 pr4 white pointer dim" type="submit" value="Submit" />
         </form>

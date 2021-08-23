@@ -42,7 +42,7 @@ let stepTwo = (tokenId) => {
   stepOne.style = 'display:none;';
 
   let stepTwo = document.getElementById('step2');
-  stepTwo.style = 'display:block;'
+  stepTwo.style = '';
 
   let form = document.getElementById('step2-form');
   form.action =
@@ -77,12 +77,12 @@ let params = (new URL(document.location)).searchParams;
 let tokenId = params.get('token-id');
 if (!!tokenId && tokenId.length > 0) {
   let thirdStep = document.getElementById('step3');
-  thirdStep.style = "display:block;";
+  thirdStep.style = "";
   stepThree(tokenId);
 
 } else {
   let firstStep = document.getElementById('step1');
-  firstStep.style = "display:block;";
+  firstStep.style = "";
 
   let button = document.getElementById('step1-button');
   button.onclick = async () => {
