@@ -73,6 +73,10 @@ let stepThree = (tokenId) => {
   });
 };
 
+if (window.location.protocol !== 'https:') {
+  location.href = location.href.replace("http://", "https://");
+}
+
 let params = (new URL(document.location)).searchParams;
 let tokenId = params.get('token-id');
 if (!!tokenId && tokenId.length > 0) {
