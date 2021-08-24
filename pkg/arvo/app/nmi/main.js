@@ -69,7 +69,7 @@ let stepThree = (tokenId) => {
     status.innerText = "Payment Successful!"
   })
   .catch((error) => {
-    window.location.replace("http://urbit.studio/pay");
+    window.location.replace("https://urbit.studio/pay");
   });
 };
 
