@@ -80,12 +80,16 @@
     |=  =action
     ^-  (quip card _state)
     |^
-    =/  =wire  /send-email/(scot %uv eny.bowl)
-    :_  state
-    =-  [%pass wire %arvo %i %request -]~
-    [send-email *outbound-config:iris]
+    ?+    -.action  !!
+        %send-email
+      =/  =wire  /send-email/(scot %uv eny.bowl)
+      :_  state
+      =-  [%pass wire %arvo %i %request -]~
+      [(send-email email.action) *outbound-config:iris]
+    ==
     ::
     ++  send-email
+      |=  =email
       ^-  request:http
       :^  %'POST'  (cat 3 endpoint '/mail/send')
         :~  ['Content-type' 'application/json']
@@ -95,32 +99,35 @@
       %-  json-to-octs:server
       ^-  json
       %-  pairs:enjs:format
-      :~  ['from' from-field]
-          ['subject' s+'example test']
-          ['content' a+content-field]
-          ['personalizations' a+personalizations-field]
+      :~  ['from' (from-to-json from.email)]
+          ['subject' s+subject.email]
+          ['content' a+(turn content.email content-to-json)]
+        ::
+          :-  'personalizations'
+          a+(turn personalizations.email personalization-to-json)
       ==
     ::
-    ++  from-field
+    ++  from-to-json
+      |=  from=from-field
       ^-  json
       %-  pairs:enjs:format
-      :~  ['email' s+'logan@tirrel.io']
-          ['name' s+'Logan']
+      :~  ['email' s+email.from]
+          ['name' s+name.from]
       ==
     ::
-    ++  content-field
-      ^-  (list json)
-      :_  ~
+    ++  content-to-json
+      |=  con=content-field
+      ^-  json
       %-  pairs:enjs:format
-      :~  ['type' s+'text/plain']
-          ['value' s+'example email']
+      :~  ['type' s+type.con]
+          ['value' s+value.con]
       ==
     ::
-    ++  personalizations-field
-      ^-  (list json)
-      :_  ~
+    ++  personalization-to-json
+      |=  per=personalization-field
+      ^-  json
       %+  frond:enjs:format  %to
-      a+[(frond:enjs:format %email s+'logan@tirrel.io')]~
+      a+[(frond:enjs:format %email s+to.per)]~
     --
   --
 ::
@@ -146,6 +153,9 @@
     ?+    wire  ~|('unknown request type coming from sendgrid-hook' !!)
         [%send-email @ ~]
       ~&  res
+      ?~  full-file.res
+        `state
+      ~&  `@t`q.data.u.full-file.res
       [~ state]
     ==
   --
