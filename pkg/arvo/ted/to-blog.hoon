@@ -1,4 +1,4 @@
-/-  spider, store=graph-store
+/-  spider, store=graph-store, file-server
 /+  strandio
 =,  strand=strand:spider
 ^-  thread:spider
@@ -6,7 +6,7 @@
 =/  m  (strand:spider ,vase)
 |^
 ^-  form:m
-=+  !<([~ =resource:store =index:store] arg)
+=+  !<([~ =resource:store =index:store serve-path=path] arg)
 ;<  =graph:store  bind:m  (scry-graph resource)
 ?~  index
   !!
@@ -21,17 +21,15 @@
   !!
 =*  post  p.post.first-revision
 =/  webpage  (to-webpage post)
-~&  `tape`(welp "<!doctype html>" (en-xml:html webpage))
 =/  octt  (to-octt webpage)
 ;<  ~  bind:m
   %+  poke-our:strandio  %file-server
   :-  %file-server-action
-  !>  =-  [%serve-glob /nick-blog - %.y]
-      ^-  (map path mime)
-      %-  ~(gas by *(map path mime))
-      :_  ~
-      :-  /index/html
-      [[%text %html ~] octt]
+  !>  ^-  action:file-server
+  =-  [%serve-glob serve-path - %.y]
+  ^-  (map path mime)
+  %-  ~(gas by *(map path mime))
+  [/index/html [[%text %html ~] octt]]^~
 (pure:m !>(~))
 ::
 ++  orm      ((on atom node:store) gth)
