@@ -23,6 +23,15 @@
 =/  webpage  (to-webpage post)
 ~&  `tape`(welp "<!doctype html>" (en-xml:html webpage))
 =/  octt  (to-octt webpage)
+;<  ~  bind:m
+  %+  poke-our:strandio  %file-server
+  :-  %file-server-action
+  !>  =-  [%serve-glob /nick-blog - %.y]
+      ^-  (map path mime)
+      %-  ~(gas by *(map path mime))
+      :_  ~
+      :-  /index/html
+      [[%text %html ~] octt]
 (pure:m !>(~))
 ::
 ++  orm      ((on atom node:store) gth)
