@@ -8,8 +8,7 @@
 ^-  form:m
 =+  !<([~ =resource:store =index:store serve-path=path] arg)
 ;<  =node:store  bind:m  (scry-node resource index)
-?:  ?=(%| -.post.node)
-  !!
+?>  ?=(%& -.post.node)
 =*  post  p.post.node
 =/  webpage  (to-webpage post)
 =/  octt  (to-octt webpage)
@@ -71,7 +70,8 @@
     ==
     ;body(class "w-100 h-100 pa4 flex justify-center")
       ;div(class "flex flex-column w-90 near-black", style "max-width: 44rem;")
-        ;h1(class "f2 sans-serif lh-title"): {(trip text.title)}
+        ;h1(class "f2 sans-serif lh-title", style "margin-block-end: 0;"): {(trip text.title)}
+        ;p(class "f5 sans-serif gray fw3"): {(trip (cut 3 [0 9] (scot %da time-sent.post)))}
         ;p(class "f4 font-spectral lh-copy fw3", style "white-space: pre-wrap;"): {(trip text.body)}
       ==
     ==
