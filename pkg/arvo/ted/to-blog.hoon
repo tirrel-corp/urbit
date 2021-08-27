@@ -7,19 +7,10 @@
 |^
 ^-  form:m
 =+  !<([~ =resource:store =index:store serve-path=path] arg)
-;<  =graph:store  bind:m  (scry-graph resource)
-?~  index
+;<  =node:store  bind:m  (scry-node resource index)
+?:  ?=(%| -.post.node)
   !!
-=/  =node:store  (got:orm graph i.index)
-?.  ?=(%graph -.children.node)
-  !!
-=/  first-note  (got:orm p.children.node 1)
-?.  ?=(%graph -.children.first-note)
-  !!
-=/  first-revision  (got:orm p.children.first-note 1)
-?:  ?=(%| -.post.first-revision)
-  !!
-=*  post  p.post.first-revision
+=*  post  p.post.node
 =/  webpage  (to-webpage post)
 =/  octt  (to-octt webpage)
 ;<  ~  bind:m
@@ -39,15 +30,21 @@
 ::
 ++  orm      ((on atom node:store) gth)
 ::
-++  scry-graph
-  |=  rid=resource:store
-  =/  m  (strand ,graph:store)
+++  scry-node
+  |=  [rid=resource:store =index:store]
+  =/  m  (strand ,node:store)
   ^-  form:m
   ;<  =update:store  bind:m
     %+  scry:strandio  update:store
-    /gx/graph-store/graph/(scot %p entity.rid)/[name.rid]/noun
-  ?>  ?=(%add-graph -.q.update)
-  (pure:m graph.q.update)
+    ^-  path
+    %-  zing
+    :~  /gx/graph-store/graph/(scot %p entity.rid)/[name.rid]/node/index/kith
+        (turn index (cury scot %ud))
+        /noun
+    ==
+  ?>  ?=(%add-nodes -.q.update)
+  ?>  ?=(^ nodes.q.update)
+  (pure:m q.n.nodes.q.update)
 ::
 ++  to-octt
   |=  =manx
@@ -70,7 +67,7 @@
       ;meta(name "viewport", content "width=device-width, initial-scale=1.0");
       ;link(rel "stylesheet", href "https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css");
       ;link(rel "stylesheet", href "https://pagecdn.io/lib/easyfonts/spectral.css");
-      ;title: {(trip text.title)} - {(trip (scot %p author.post))}
+      ;title: {(trip text.title)} - by {(trip (scot %p author.post))}
     ==
     ;body(class "w-100 h-100 pa4 flex justify-center")
       ;div(class "flex flex-column w-90 near-black", style "max-width: 44rem;")
