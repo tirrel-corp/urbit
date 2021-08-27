@@ -23,6 +23,11 @@
 =/  webpage  (to-webpage post)
 =/  octt  (to-octt webpage)
 ;<  ~  bind:m
+  %+  raw-poke-our:strandio  %file-server
+  :-  %file-server-action
+  !>  ^-  action:file-server
+  [%unserve-dir serve-path]
+;<  ~  bind:m
   %+  poke-our:strandio  %file-server
   :-  %file-server-action
   !>  ^-  action:file-server
@@ -62,11 +67,16 @@
   ;html
     ;head
       ;meta(charset "utf-8");
+      ;meta(name "viewport", content "width=device-width, initial-scale=1.0");
+      ;link(rel "stylesheet", href "https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css");
+      ;link(rel "stylesheet", href "https://pagecdn.io/lib/easyfonts/spectral.css");
       ;title: {(trip text.title)} - {(trip (scot %p author.post))}
     ==
-    ;body
-      ;h2: {(trip text.title)}
-      ;pre: {(trip text.body)}
+    ;body(class "w-100 h-100 pa4 flex justify-center")
+      ;div(class "flex flex-column w-90 near-black", style "max-width: 44rem;")
+        ;h1(class "f2 sans-serif lh-title"): {(trip text.title)}
+        ;p(class "f4 font-spectral lh-copy fw3", style "white-space: pre-wrap;"): {(trip text.body)}
+      ==
     ==
   ==
 ::
