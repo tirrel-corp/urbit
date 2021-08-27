@@ -68,8 +68,14 @@
       ;link(rel "stylesheet", href "https://pagecdn.io/lib/easyfonts/spectral.css");
       ;title: {(trip text.title)} - by {(trip (scot %p author.post))}
     ==
-    ;body(class "w-100 h-100 pa4 flex justify-center")
-      ;div(class "flex flex-column w-90 near-black", style "max-width: 44rem;")
+    ;body(class "w-100 h-100 flex flex-column items-center")
+      ;div(class "w-100 bb flex justify-center")
+        ;div(class "flex w-90 pa3 pl4 pr4 justify-between items-center", style "max-width: 44rem;")
+          ;p(class "pt2 pb2 f5 sans-serif fw3", style "margin-block-start: 0; margin-block-end: 0;"): Nick Blog
+          ;button(class "f6 button-reset sans-serif pa2 bg-black b--none white br2", style "padding: 12px;"): Subscribe
+        ==
+      ==
+      ;div(class "pa4 flex flex-column w-90 near-black", style "max-width: 44rem;")
         ;h1(class "f2 sans-serif lh-title", style "margin-block-end: 0;"): {(trip text.title)}
         ;p(class "f5 sans-serif gray fw3"): {(trip (cut 3 [0 9] (scot %da time-sent.post)))}
         ;p(class "f4 font-spectral lh-copy fw3", style "white-space: pre-wrap;"): {(trip text.body)}
