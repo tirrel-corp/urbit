@@ -1,11 +1,5 @@
 import { DocketHref } from '@urbit/api/docket';
 
-export function makeKeyFn(key: string) {
-  return (childKeys: string[] = []) => {
-    return [key].concat(childKeys);
-  };
-}
-
 export const useMockData = import.meta.env.MODE === 'mock';
 
 export async function fakeRequest<T>(data: T, time = 300): Promise<T> {
@@ -16,10 +10,19 @@ export async function fakeRequest<T>(data: T, time = 300): Promise<T> {
   });
 }
 
-export function getAppHref(href: DocketHref) {
+export function getAppHref(href: DocketHref): string {
   return 'site' in href ? href.site : `/apps/${href.glob.base}`;
 }
 
 export function disableDefault<T extends Event>(e: T): void {
   e.preventDefault();
+}
+
+// hack until radix-ui fixes this behavior
+export function handleDropdownLink(setOpen: (open: boolean) => void): (e: Event) => void {
+  return (e: Event) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setTimeout(() => setOpen(false), 15);
+  };
 }

@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import fuzzy from 'fuzzy';
-import slugify from 'slugify';
 import { ShipName } from '../../components/ShipName';
 import useDocketState, { App, useAllyTreaties } from '../../state/docket';
 import { MatchItem, useLeapStore } from '../Nav';
@@ -87,7 +86,7 @@ export const Apps = ({ match }: AppsProps) => {
           apps={results}
           labelledBy="developed-by"
           matchAgainst={selectedMatch}
-          to={(app) => `${match?.path.replace(':ship', provider)}/${app.ship}/${slugify(app.desk)}`}
+          to={(app) => `${match?.path.replace(':ship', provider)}/${app.desk}`}
         />
       )}
       <p>That&apos;s it!</p>

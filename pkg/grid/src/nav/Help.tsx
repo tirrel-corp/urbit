@@ -1,12 +1,11 @@
-import React, { useEffect } from 'react';
-import { useLeapStore } from './Nav';
+import React from 'react';
 
 export const Help = () => {
-  const select = useLeapStore((state) => state.select);
+  // const select = useLeapStore((state) => state.select);
 
-  useEffect(() => {
-    select('Help and Support');
-  }, []);
+  // useEffect(() => {
+  //   select('Help and Support');
+  // }, []);
 
   return (
     <div className="p-4 md:p-8 space-y-8">
