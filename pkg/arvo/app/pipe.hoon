@@ -19,10 +19,11 @@
 %-  agent:dbug
 %+  verb  |
 ^-  agent:gall
+=<
 |_  =bowl:gall
 +*  this  .
     def   ~(. (default-agent this %|) bowl)
-    gra   ~(. graph bowl)
+    pc    ~(. +> bowl)
 ::
 ++  on-init
   ^-  (quip card _this)
@@ -51,24 +52,19 @@
   ++  pipe-action
     |=  =action
     ^-  (quip card _state)
+    |^
     ?-    -.action
         %add
       ?<  (~(has by flows) name.action)
-      =/  build=$-(update:store:graph website)
-        .^  $-(update:store:graph website)
-            %cf
-            (scot %p our.bowl)
-            q.byk.bowl
-            (scot %da now.bowl)
-            mark.action
-            %pipe-website
-            ~
-        ==
+      =/  to-website=$-(update:store:graph website)  (build:pc mark.action)
       =/  =website
-        %-  build
-        (get-add-nodes resource.action index.action)
-      :-  :~  (poke-ob-hook mark.action)
-              (give name.action website)
+        %-  to-website
+        (get-add-nodes:pc resource.action index.action)
+      :-  %-  zing
+          :~  (poke-ob-hook mark.action)^~
+              (give:pc name.action website)^~
+              ?.  serve.action  ~
+              (serve:pc name.action website)
           ==
       %_    state
         flows  (~(put by flows) name.action +>.action)
@@ -93,34 +89,19 @@
         name.action
       ==
     ==
-  ::
-  ++  give
-    |=  [name=term =website]
-    ^-  card
-    =-  [%give %fact - [%pipe-update !>(`update`[%built name website])]]
-    :~  /updates
-        /site/[name]
-    ==
-  ::
-  ++  get-add-nodes
-    |=  [res=resource =index]
-    ^-  update:store:graph
-    %+  scry-for:gra  ,=update:store:graph
-    %+  weld
-      /graph/(scot %p entity.res)/[name.res]/node/index/kith
-    (turn index (cury scot %ud))
-  ::
-  ++  poke-ob-hook
-    |=  =^mark
-    ^-  card
-    :*  %pass
-        /[mark]
-        %agent
-        [our.bowl %observe-hook]
-        %poke
-        %observe-action
-        !>([%warm-static-conversion mark %pipe-website])
-    ==
+    ::
+    ++  poke-ob-hook
+      |=  =^mark
+      ^-  card
+      :*  %pass
+          /(scot %da now.bowl)/[mark]
+          %agent
+          [our.bowl %observe-hook]
+          %poke
+          %observe-action
+          !>([%warm-static-conversion mark %pipe-website])
+      ==
+    --
   --
 ::
 ++  on-agent
@@ -145,20 +126,13 @@
       %+  turn  (update-to-flows update)
       |=  [name=term =flow]
       ^-  [name=term website]
-      =/  build=$-(update:store:graph website)
-        .^  $-(update:store:graph website)
-            %cf
-            (scot %p our.bowl)
-            q.byk.bowl
-            (scot %da now.bowl)
-            mark.flow
-            %pipe-website
-            ~
-        ==
+      =/  to-website=$-(update:store:graph website)  (build:pc mark.flow)
       :-  name
-      (build (get-add-nodes resource.flow index.flow))
-    :-  (turn ~(tap by new-sites) give)
-    this(sites (~(uni by sites) new-sites))
+      (to-website (get-add-nodes:pc resource.flow index.flow))
+    :_  this(sites (~(uni by sites) new-sites))
+    %+  welp
+      (turn ~(tap by new-sites) give:pc)
+    (zing (turn ~(tap by new-sites) serve:pc))
     ::
     ++  update-to-flows
       |=  =update:store:graph
@@ -168,7 +142,6 @@
       =*  nodes  nodes.q.update
       =-  %+  murn  -
           |=  name=term
-          ^-  (unit [term flow])
           ?~  maybe-flow=(~(get by flows) name)
             ~
           `[name u.maybe-flow]
@@ -183,25 +156,9 @@
       ?~  index
         ~(tap in names)
       %_  $
-        index  (slag 1 `(list @)`index)
+        index  (snip `(list @)`index)
         names  (~(uni in names) (~(get ju uid-to-name) [rid index]))
       ==
-    ::
-    ++  give
-      |=  [name=term =website]
-      ^-  card
-      =-  [%give %fact - [%pipe-update !>(`update`[%built name website])]]
-      :~  /updates
-          /site/[name]
-      ==
-    ::
-    ++  get-add-nodes
-      |=  [res=resource =index]
-      ^-  update:store:graph
-      %+  scry-for:gra  ,=update:store:graph
-      %+  weld
-        /graph/(scot %p entity.res)/[name.res]/node/index/kith
-      (turn index (cury scot %ud))
     --
   ==
 ::
@@ -225,4 +182,58 @@
 ++  on-leave  on-leave:def
 ++  on-fail   on-fail:def
 --
-
+::
+|_  =bowl:gall
++*  gra  ~(. graph bowl)
+++  serve
+  |=  [name=term =website]
+  ^-  (list card)
+  :+  :*  %pass
+          /(scot %da now.bowl)/unserve
+          %agent
+          [our.bowl %file-server]
+          %poke
+          %file-server-action
+          !>([%unserve-dir /[name]])
+      ==
+    :*  %pass
+        /(scot %da now.bowl)/serve
+        %agent
+        [our.bowl %file-server]
+        %poke
+        %file-server-action
+        !>([%serve-glob /[name] website %.y])
+    ==
+  ~
+::
+++  give
+  |=  [name=term =website]
+  ^-  card
+  =-  [%give %fact - [%pipe-update !>(`update`[%built name website])]]
+  :~  /updates
+      /site/[name]
+  ==
+::
+++  build
+  |=  =^mark
+  ^-  $-(update:store:graph website)
+  =/  convert=$-(website $-(update:store:graph website))
+    .^  $-(website $-(update:store:graph website))
+          %cf
+          (scot %p our.bowl)
+          q.byk.bowl
+          (scot %da now.bowl)
+          mark
+          %pipe-website
+          ~
+      ==
+  (convert *website)
+::
+++  get-add-nodes
+  |=  [res=resource =index]
+  ^-  update:store:graph
+  %+  scry-for:gra  ,=update:store:graph
+  %+  weld
+    /graph/(scot %p entity.res)/[name.res]/node/index/kith
+  (turn index (cury scot %ud))
+--
