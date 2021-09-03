@@ -39,6 +39,10 @@
     ++  to-blog
       |=  =post:store
       ^-  manx
+      =/  body-font=(pair tape tape)
+        ["https://pagecdn.io/lib/easyfonts/spectral.css" "font-spectral"]
+      =/  accent-font=(pair tape tape)
+        ["" "sans-serif"]
       =/  title=content:store  (snag 0 contents.post)
       ?>  ?=(%text -.title)
       =/  body=content:store  (snag 1 contents.post)
@@ -48,41 +52,26 @@
           ;meta(charset "utf-8");
           ;meta(name "viewport", content "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0");
           ;link(rel "stylesheet", href "https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css");
+          ;link(rel "stylesheet", href "{p.body-font}");
+          ;link(rel "stylesheet", href "{p.accent-font}");
           ;title: {(trip text.title)} - by {(trip (scot %p author.post))}
         ==
         ;body(class "w-100 h-100 flex flex-column items-center")
-          ;+  (header-div post)
-          ;+  (body-div post)
-        ==
-      ==
-    ::
-    ++  header-div
-      |=  =post:store
-      ^-  manx
-      =/  title=content:store  (snag 0 contents.post)
-      ?>  ?=(%text -.title)
-      =/  body=content:store  (snag 1 contents.post)
-      ?>  ?=(%text -.body)
-      ;div(class "w-100 bb b--black-20 flex justify-center")
-        ;div(class "flex w-90 pa3 pl4 pr4 justify-between items-center", style "max-width: 44rem;")
-          ;span(class "flex items-center")
-            ;p(class "pa2 f5 fw3", style "margin-block-start: 0; margin-block-end: 0;"): Nick Blog
-          ==
-          ;button(class "f6 pointer fw3 button-reset pa2 bg-black b--none white br2", style "padding: 12px;"): Subscribe
+          ;+  (body-div post body-font accent-font)
         ==
       ==
     ::
     ++  body-div
-      |=  =post:store
+      |=  [=post:store body-font=(pair tape tape) accent-font=(pair tape tape)]
       ^-  manx
       =/  title=content:store  (snag 0 contents.post)
       ?>  ?=(%text -.title)
       =/  body=content:store  (snag 1 contents.post)
       ?>  ?=(%text -.body)
       ;div(class "pa4 flex flex-column w-90 near-black", style "max-width: 44rem;")
-        ;h1(class "f2 lh-title", style "margin-block-end: 0;"): {(trip text.title)}
-        ;p(class "f5 gray fw3"): {(trip (cut 3 [0 9] (scot %da time-sent.post)))}
-        ;p(class "f4 lh-copy fw3", style "white-space: pre-wrap;"): {(trip text.body)}
+        ;h1(class "f2 lh-title {q.accent-font}", style "margin-block-end: 0;"): {(trip text.title)}
+        ;p(class "f5 gray {q.accent-font} fw3"): {(trip (scot %da time-sent.post))}
+        ;p(class "f4 lh-copy {q.body-font} fw3", style "white-space: pre-wrap;"): {(trip text.body)}
       ==
     --
   --

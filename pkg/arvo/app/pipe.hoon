@@ -154,7 +154,9 @@
       =|  names=(set term)
       |-
       ?~  index
-        ~(tap in names)
+        %~  tap  in
+        %-  ~(uni in names)
+        (~(get ju uid-to-name) [rid index])
       %_  $
         index  (snip `(list @)`index)
         names  (~(uni in names) (~(get ju uid-to-name) [rid index]))
@@ -232,6 +234,9 @@
 ++  get-add-nodes
   |=  [res=resource =index]
   ^-  update:store:graph
+  ?~  index
+    %+  scry-for:gra  ,=update:store:graph
+    /graph/(scot %p entity.res)/[name.res]/node/children/kith/'~'/'~'
   %+  scry-for:gra  ,=update:store:graph
   %+  weld
     /graph/(scot %p entity.res)/[name.res]/node/index/kith
