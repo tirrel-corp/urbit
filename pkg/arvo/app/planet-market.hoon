@@ -1,16 +1,18 @@
 :: planet-market [tirrel]
 ::
 /-  *planet-market
-/+  default-agent, dbug, verb
+/+  ntx=naive-transactions, default-agent, dbug, verb
 |%
 +$  card  card:agent:gall
 +$  state-0
   $:  %0
-      =price
+      config
+      price=(unit price)
+      referrals=(unit referral-policy)
+    ::
       =available-ships
       =sold-ships
       =ship-to-sell-date
-      =referral-policy
   ==
 --
 ::
@@ -48,6 +50,46 @@
     |=  =update
     ^-  (quip card _state)
     ?-    -.update
+        %set-config
+      =*  c  config.update
+      :-  ~
+      %_  state
+        who      who.c
+        address  address.c
+        pk       pk.c
+        proxy    proxy.c
+      ==
+    ::
+      %set-price            `state(price `price.update)
+      %set-referral-policy  `state(referral-policy referral-policy.update)
+    ::
+        %spawn-ships
+      ?>  ?=(^ who)
+      ?>  ?=(^ address)
+      ?>  ?=(^ pk)
+      ?>  ?=(^ proxy)
+      ::  get nonce. if no nonce, fail
+      ::  generate and sign tx
+      ::  submit roller-action
+      =/  nonce=(unit @)
+        (scry-for %roller (unit @) /nonce/(scot %p u.who)/[u.proxy])
+      ?>  ?=(^ nonce)
+      ::  TODO: generate ships to replace ~marzod and end up with a list of
+      ::  txs
+      =/  =tx:naive:ntx
+        [[u.who u.proxy] %spawn ~marzod u.address]
+      =/  sig=octs
+        (gen-tx:ntx u.nonce tx u.pk u.address))
+      :_  state
+      :_  ~
+      :*  %pass
+          /spawn/(scot %ud u.nonce)
+          %agent
+          [our.bowl %roller]
+          %poke
+          roller-action+!>([%submit | u.address q.sig %don tx])
+      ==
+    ::
         %add-ships
       :-  (give /updates^~ update)
       ::  check that no added code has already been sold
@@ -129,19 +171,22 @@
       ::  if not, crash. if yes, then sell at the referral code price.
       state
     ::
-        %set-price
-      :-  (give /updates^~ update)
-      state(price price.update)
-    ::
-        %set-referral-policy
-      :-  (give /updates^~ update)
-      state(referral-policy referral-policy.update)
     ==
   ::
   ++  give
     |=  [paths=(list path) =update]
     ^-  (list card)
     [%give %fact paths %planet-market-update !>(update)]~
+  ::
+  ++  scry-for
+    |*  [dap=term =mold =path]
+    .^  mold
+      %gx
+      (scot %p our.bowl)
+      dap
+      (scot %da now.bowl)
+      (snoc `^path`path %noun)
+    ==
   --
 ::
 ++  on-watch
