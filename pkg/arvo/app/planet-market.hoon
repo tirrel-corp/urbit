@@ -3,6 +3,8 @@
 /-  *planet-market
 /+  ntx=naive-transactions, default-agent, dbug, verb
 |%
+::  TODO: replace with import of dice
++$  roller-tx  [=ship =status hash=keccak =time type=l2-tx]
 +$  card  card:agent:gall
 +$  state-0
   $:  %0
@@ -52,7 +54,20 @@
     ?-    -.update
         %set-config
       =*  c  config.update
-      :-  ~
+      =/  cards=(list card)
+        =/  watch-card=(unit card)
+          ?~  address.c  ~
+          :-  ~
+          :^  %pass  /address/(scot %p u.address.c)  %agent
+          [[our.bowl %roller] %watch /txs/(scot %ux u.address.c)]
+        ?~  address
+          ?~(address.c ~ (need watch-card)^~)
+        :-  :^  %pass  /address/(scot %p u.address)  %agent
+            [[our.bowl %roller] %leave ~]
+        ?~  address.c
+          ~
+        (need watch-card)^~
+      :-  cards
       %_  state
         who      who.c
         address  address.c
@@ -71,23 +86,30 @@
       ::  get nonce. if no nonce, fail
       ::  generate and sign tx
       ::  submit roller-action
-      =/  nonce=(unit @)
-        (scry-for %roller (unit @) /nonce/(scot %p u.who)/[u.proxy])
-      ?>  ?=(^ nonce)
-      ::  TODO: generate ships to replace ~marzod and end up with a list of
-      ::  txs
-      =/  =tx:naive:ntx
-        [[u.who u.proxy] %spawn ~marzod u.address]
-      =/  sig=octs
-        (gen-tx:ntx u.nonce tx u.pk u.address))
+      =/  nonce=@
+        (need (scry-for %roller (unit @) /nonce/(scot %p u.who)/[u.proxy]))
+      =/  unspawned=(list ship)
+        (scry-for %roller (list ship) /unspawned/(scot %p u.who))
+      ?>  ?=(^ unspawned)
       :_  state
-      :_  ~
-      :*  %pass
-          /spawn/(scot %ud u.nonce)
-          %agent
-          [our.bowl %roller]
-          %poke
-          roller-action+!>([%submit | u.address q.sig %don tx])
+      =|  cards=(list card)
+      |-
+      ?~  unspawned
+        (flop cards)
+      =*  ship  i.unspawned
+      =/  =tx:naive:ntx
+        [[u.who u.proxy] %spawn ship u.address]
+      =/  sig=octs
+        (gen-tx:ntx nonce tx u.pk u.address))
+      %_    $
+        unspawned  t.unspawned
+        nonce      +(nonce)
+      ::
+          cards
+        :_  cards
+        :^  %pass  /spawn/(scot %p ship)  %agent
+        :+  [our.bowl %roller]  %poke
+        roller-action+!>([%submit | u.address q.sig %don tx])
       ==
     ::
         %add-ships
@@ -205,7 +227,43 @@
     [%x %export ~]  ``noun+!>(state)
   ==
 ::
-++  on-agent  on-agent:def
+++  on-agent
+  |=  [=wire =sign:agent:gall]
+  ^-  (quip card _this)
+  |^
+  ?+    wire  (on-agent:def wire sign)
+      [%address @ ~]
+    ?.  ?=(%fact -.sign)
+      `this
+    ?.  ?=(%txs p.cage.sign)
+      `this
+    =/  txs  !<((list roller-tx) q.cage.sign)
+    [(process-txs txs) this]
+  ==
+  ::
+  ++  process-txs
+    |=  txs=(list roller-tx)
+    ^-  (list card)
+    =|  ships=(set ship)
+    |-
+    ?~  txs
+      ?~  ships  ~
+      :_  ~
+      :^  %pass  /add-ships/(scot %ux (mug txs))  %agent
+      :+  [our.bowl %planet-market]  %poke
+      planet-market-update+!>([%add-ships ships])
+    =*  tx  i.txs
+    %_    $
+      txs  t.txs
+    ::
+        ships
+      ?.  ?&  ?=(%confirmed status.tx)
+            ?=(%spawn type.tx)
+          ==
+        ships
+      (~(put in ships) ship.txs)
+    ==
+  --
 ++  on-arvo   on-arvo:def
 ++  on-fail   on-fail:def
 --
