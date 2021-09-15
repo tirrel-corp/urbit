@@ -1,28 +1,24 @@
 |%
-::  proxy copied from /lib/naive.hoon
-+$  proxy      ?(%own %spawn %manage %vote %transfer)
-::
 +$  price
   $%  [%price amount=@rd currency=@t]
       [%free ~]
   ==
 ::
++$  selector  (each (set ship) @ud)
+::
 +$  referral-policy  [number-referrals=@ud =price]
 +$  record           [=ship =price ref=(unit referral-policy)]
 +$  records          (set record)
 ::
-+$  config  [who=(unit ship) address=(unit @ux) pk=(unit @) proxy=(unit proxy)]
++$  config  [who=(unit ship) prv=(unit @) proxy=(unit ?(%own %spawn))]
 +$  update
   $%  [%set-config =config]
       [%set-price =price]
-      [%set-referral-policy ref=(unit referral-policy)]
+      [%set-referrals ref=(unit referral-policy)]
     ::
-      [%spawn-ships n=@ud]
-      [%add-ships ships=(set ship)]
-      [%sell-next-ships n=@ud]
-      [%sell-ships ships=(set ship)]
-      [%remove-ships ships=(set ship)]
-      [%use-referral =ship]
+      [%spawn-ships sel=selector]
+      ::[%sell-ships sel=selector]
+      [%sell-from-referral ~]
   ==
 ::
 +$  ship-to-sell-date  (map ship time)
