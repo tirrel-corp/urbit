@@ -129,49 +129,40 @@
         roller-action+!>([%submit | addr q.sig %don tx])
       --
     ::
-::        %sell-next-ships
-::      ?>  ?=(^ price)
-::      =/  ships     ~(tap in available-ships)
-::      =/  len       (lent ships)
-::      ?:  (gth n.update len)
-::        !!
-::      =/  =records
-::        =/  urec=(unit records)  (get:his sold-ships now.bowl)
-::        ?~(urec ~ u.urec)
-::      =|  ships-to-be-sold=(set ship)
-::      |-
-::      ?~  ships
-::        :-  (give /updates^~ [%sell-ships ships-to-be-sold])
-::        state(sold-ships (put:his sold-ships now.bowl records))
-::      =*  ship  i.ships
-::      %_  $
-::        ships              t.ships
-::        ships-to-be-sold   (~(put in ships-to-be-sold) ship)
-::        ship-to-sell-date  (~(put by ship-to-sell-date) ship now.bowl)
-::        records            (~(put in records) [ship u.price referrals])
-::        available-ships    (~(del in available-ships) ship)
-::      ==
-::    ::
-::        %sell-ships
-::      ?>  ?=(^ price)
-::      :-  (give /updates^~ update)
-::      ::  check that all codes being sold are available
-::      ::  if not, crash. if yes, then sell them
-::      =/  ships     ~(tap in ships.update)
-::      =/  =records
-::        =/  urec=(unit records)  (get:his sold-ships now.bowl)
-::        ?~(urec ~ u.urec)
-::      |-
-::      ?~  ships
-::        state(sold-ships (put:his sold-ships now.bowl records))
-::      =*  ship  i.ships
-::      ~|  "cannot sell ship that does not exist"
-::      ?>  (~(has in available-ships) ship)
-::      %_  $
-::        records            (~(put in records) [ship u.price referrals])
-::        available-ships    (~(del in available-ships) ship)
-::        ship-to-sell-date  (~(put by ship-to-sell-date) ship now.bowl)
-::      ==
+        %sell-ships
+      ?>  ?=(^ price)
+      =/  =records
+        =/  urec=(unit records)  (get:his sold-ships now.bowl)
+        ?~(urec ~ u.urec)
+      =/  ships  ~(tap in available-ships)
+      ?:  ?=(%| -.sel.update)
+        ~|  "cannot sell more ships than we have"
+        ?>  (lth p.sel.update (lent ships))
+        =|  ships-to-be-sold=(set ship)
+        |-
+        ?~  ships
+          :-  (give /updates^~ [%sell-ships %&^ships-to-be-sold])
+          state(sold-ships (put:his sold-ships now.bowl records))
+        =*  ship  i.ships
+        %_  $
+          ships              t.ships
+          ships-to-be-sold   (~(put in ships-to-be-sold) ship)
+          records            (~(put in records) [ship u.price referrals])
+          available-ships    (~(del in available-ships) ship)
+          ship-to-sell-date  (~(put by ship-to-sell-date) ship now.bowl)
+        ==
+      :-  (give /updates^~ update)
+      |-
+      ?~  ships
+        state(sold-ships (put:his sold-ships now.bowl records))
+      =*  ship  i.ships
+      ~|  "cannot sell ship that does not exist"
+      ?>  (~(has in available-ships) ship)
+      %_  $
+        records            (~(put in records) [ship u.price referrals])
+        available-ships    (~(del in available-ships) ship)
+        ship-to-sell-date  (~(put by ship-to-sell-date) ship now.bowl)
+      ==
     ::
         %sell-from-referral
       :-  (give /updates^~ update)
@@ -179,7 +170,6 @@
       ::  has referrals left to give out.
       ::  if not, crash. if yes, then sell at the referral code price.
       state
-    ::
     ==
   ::
   ++  give

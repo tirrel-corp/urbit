@@ -17,7 +17,7 @@
       [%set-referrals ref=(unit referral-policy)]
     ::
       [%spawn-ships sel=selector]
-      ::[%sell-ships sel=selector]
+      [%sell-ships sel=selector]
       [%sell-from-referral ~]
   ==
 ::
