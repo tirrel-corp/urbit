@@ -8,7 +8,7 @@
   ==
 ::
 +$  referral-policy  [number-referrals=@ud =price]
-+$  record           [=ship =price =referral-policy]
++$  record           [=ship =price ref=(unit referral-policy)]
 +$  records          (set record)
 ::
 +$  config  [who=(unit ship) address=(unit @ux) pk=(unit @) proxy=(unit proxy)]
@@ -28,6 +28,7 @@
 +$  ship-to-sell-date  (map ship time)
 +$  available-ships    (set ship)
 ::
+::  TODO: make a "jog" library for ordered maps of sets
 +$  sold-ships         ((mop time records) gth)
 ++  his                ((on time records) gth)
 --

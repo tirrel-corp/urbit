@@ -1,6 +1,6 @@
 :: naive-market [tirrel]
 ::
-/-  *naive-market, *dice
+/-  *naive-market, dice
 /+  ntx=naive-transactions, default-agent, dbug, verb
 |%
 +$  card  card:agent:gall
@@ -74,7 +74,7 @@
       ==
     ::
       %set-price            `state(price `price.update)
-      %set-referral-policy  `state(referral-policy referral-policy.update)
+      %set-referral-policy  `state(referrals ref.update)
     ::
         %spawn-ships
       ?>  ?=(^ who)
@@ -88,17 +88,16 @@
         (need (scry-for %roller (unit @) /nonce/(scot %p u.who)/[u.proxy]))
       =/  unspawned=(list ship)
         (scry-for %roller (list ship) /unspawned/(scot %p u.who))
-      ?>  ?=(^ unspawned)
       :_  state
       =|  cards=(list card)
-      |-
+      |-  ^-  (list card)
       ?~  unspawned
         (flop cards)
       =*  ship  i.unspawned
       =/  =tx:naive:ntx
         [[u.who u.proxy] %spawn ship u.address]
       =/  sig=octs
-        (gen-tx:ntx nonce tx u.pk u.address))
+        (gen-tx:ntx nonce tx u.pk)
       %_    $
         unspawned  t.unspawned
         nonce      +(nonce)
@@ -130,43 +129,45 @@
       ==
     ::
         %sell-next-ships
-      ::  check that available-codes has N items in it
-      ::  if not, crash. if yes, then sell them
+      ?>  ?=(^ price)
+      =/  ships     ~(tap in available-ships)
+      =/  len       (lent ships)
       ?:  (gth n.update len)
         !!
-      =|  i=@ud
-      =/  =records  (need (fall (get:his now) [~ ~]))
-      =/  ships     ~(tap in available-ships)
+      =/  =records
+        =/  urec=(unit records)  (get:his sold-ships now.bowl)
+        ?~(urec ~ u.urec)
       =|  ships-to-be-sold=(set ship)
-      =/  len       (lent ships)
       |-
-      ?:  =(len i)
+      ?~  ships
         :-  (give /updates^~ [%sell-ships ships-to-be-sold])
-        state(sold-ships (put:on now.bowl records))
+        state(sold-ships (put:his sold-ships now.bowl records))
       =*  ship  i.ships
       %_  $
-        i                  +(i)
         ships              t.ships
         ships-to-be-sold   (~(put in ships-to-be-sold) ship)
         ship-to-sell-date  (~(put by ship-to-sell-date) ship now.bowl)
-        records            (~(put in records) [ship price referral-policy])
+        records            (~(put in records) [ship u.price referrals])
         available-ships    (~(del in available-ships) ship)
       ==
     ::
         %sell-ships
+      ?>  ?=(^ price)
       :-  (give /updates^~ update)
       ::  check that all codes being sold are available
       ::  if not, crash. if yes, then sell them
       =/  ships     ~(tap in ships.update)
-      =/  =records  (need (fall (get:his now) [~ ~]))
+      =/  =records
+        =/  urec=(unit records)  (get:his sold-ships now.bowl)
+        ?~(urec ~ u.urec)
       |-
       ?~  ships
-        state(sold-ships (put:on now.bowl records))
+        state(sold-ships (put:his sold-ships now.bowl records))
       =*  ship  i.ships
       ~|  "cannot sell ship that does not exist"
       ?>  (~(has in available-ships) ship)
       %_  $
-        records            (~(put in records) [ship price referral-policy])
+        records            (~(put in records) [ship u.price referrals])
         available-ships    (~(del in available-ships) ship)
         ship-to-sell-date  (~(put by ship-to-sell-date) ship now.bowl)
       ==
@@ -235,12 +236,12 @@
       `this
     ?.  ?=(%txs p.cage.sign)
       `this
-    =/  txs  !<((list roller-tx) q.cage.sign)
+    =/  txs  !<((list roller-tx:dice) q.cage.sign)
     [(process-txs txs) this]
   ==
   ::
   ++  process-txs
-    |=  txs=(list roller-tx)
+    |=  txs=(list roller-tx:dice)
     ^-  (list card)
     =|  ships=(set ship)
     |-
@@ -259,7 +260,7 @@
             ?=(%spawn type.tx)
           ==
         ships
-      (~(put in ships) ship.txs)
+      (~(put in ships) ship.tx)
     ==
   --
 ++  on-arvo   on-arvo:def
