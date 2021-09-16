@@ -12,7 +12,7 @@
       =star-configs
       =for-sale
       =sold-ships
-      =ship-to-sell-date
+      =sold-ship-to-date
   ==
 --
 ::
@@ -51,7 +51,7 @@
     ^-  (quip card _state)
     ?-    -.update
       %set-price      `state(price `price.update)
-      ::%set-referrals  `state(referrals ref.update)
+      %set-referrals  `state(referrals ref.update)
     ::
         %add-star-config
       ?<  (~(has by star-configs) who.update)
@@ -146,7 +146,7 @@
           ships-to-be-sold   (~(put in ships-to-be-sold) ship)
           records            (~(put in records) [ship u.price referrals])
           for-sale           (~(del ju for-sale) who ship)
-          ship-to-sell-date  (~(put by ship-to-sell-date) ship now.bowl)
+          sold-ship-to-date  (~(put by sold-ship-to-date) ship now.bowl)
         ==
       :-  (give /updates^~ update)
       |-
@@ -158,15 +158,15 @@
       %_  $
         records            (~(put in records) [ship u.price referrals])
         for-sale           (~(del ju for-sale) who ship)
-        ship-to-sell-date  (~(put by ship-to-sell-date) ship now.bowl)
+        sold-ship-to-date  (~(put by sold-ship-to-date) ship now.bowl)
       ==
     ::
-::        %sell-from-referral
-::      :-  (give /updates^~ update)
-::      ::  check that a code is available and that the ship in question
-::      ::  has referrals left to give out.
-::      ::  if not, crash. if yes, then sell at the referral code price.
-::      state
+        %sell-from-referral
+      :-  (give /updates^~ update)
+      ::  check that a code is available and that the ship in question
+      ::  has referrals left to give out.
+      ::  if not, crash. if yes, then sell at the referral code price.
+      state
     ==
   ::
   ++  give
@@ -212,56 +212,49 @@
       [%pass wire %agent [our.bowl %roller] %watch /txs/[i.t.wire]]^~
     ?.  ?=(%fact -.sign)
       `this
-    ~&  p.cage.sign
-    ?+    p.cage.sign  !!
-        %tx
-      =/  tx  !<(roller-tx:dice q.cage.sign)
-      [(process-txs tx^~) this]
-    ::
-        %txs
-      =/  txs  !<((list roller-tx:dice) q.cage.sign)
-      [(process-txs txs) this]
-    ==
+    `this(state process)
+::
+::    ?+    p.cage.sign  !!
+::        %tx
+::      ::=/  tx  !<(roller-tx:dice q.cage.sign)
+::      `this(state process)
+::    ::
+::        %txs
+::      ::=/  txs  !<((list roller-tx:dice) q.cage.sign)
+::      `this(state process)
+::    ==
   ==
   ::
-  ++  process-txs
-    |=  txs=(list roller-tx:dice)
-    ^-  (list card)
-    ~&  txs
-    =|  ships=(set ship)
+  ++  process
+    ^-  _state
+    =/  configs=(list (pair ship config))   ~(tap by star-configs)
     |-
-    ?~  txs
-      ?~  ships  ~
-      ~&  ships
-      ~
-    =*  tx  i.txs
-::        %add-ships
-::      :-  (give /updates^~ update)
-::      ::  check that no added code has already been sold
-::      ::  then add them to the map
-::      =/  ships  ~(tap in ships.update)
-::      |-
-::      ?~  ships
-::        state
-::      =*  ship  i.ships
-::      ::  TODO:  check that ship is still owned by our star, perhaps
-::      ::  add to a "pending but not verified" section?
-::      ::  =/  code  *@ux
-::      ?:  (~(has by ship-to-sell-date) ship)
-::        !!
-::      %_  $
-::        ships            t.ships
-::        available-ships  (~(put in available-ships) ship)
-::      ==
-    %_    $
-      txs  t.txs
-    ::
-        ships
-      ?.  ?&  ?=(%confirmed status.tx)
-            ?=(%spawn type.tx)
-          ==
-        ships
-      (~(put in ships) ship.tx)
+    ?~  configs
+      state
+    =*  who  p.i.configs
+    =*  c    q.i.configs
+    =/  =address  (address-from-prv:key:eth prv.c)
+    =/  ships=(list ship)
+      %+  murn
+        (scry-for %roller (list ship) /ships/(scot %ux address))
+      |=  s=ship
+      ?.(=(%duke (clan:title s)) ~ `s)
+    |-
+    ?~  ships
+      ^$(configs t.configs)
+    %_  $
+      ships     t.ships
+      for-sale  (~(put ju for-sale) who i.ships)
+    ==
+  ::
+  ++  scry-for
+    |*  [dap=term =mold =path]
+    .^  mold
+      %gx
+      (scot %p our.bowl)
+      dap
+      (scot %da now.bowl)
+      (snoc `^path`path %noun)
     ==
   --
 ++  on-arvo   on-arvo:def

@@ -18,14 +18,14 @@
   $%  [%add-star-config who=ship =config]
       [%del-star-config who=ship]
       [%set-price =price]
-      ::[%set-referrals ref=(unit referral-policy)]
+      [%set-referrals ref=(unit referral-policy)]
     ::
       [%spawn-ships who=ship sel=selector]
       [%sell-ships who=ship sel=selector]
-      ::[%sell-from-referral who=ship]
+      [%sell-from-referral who=ship]
   ==
 ::
-+$  ship-to-sell-date  (map ship time)
++$  sold-ship-to-date  (map ship time)
 +$  for-sale           (jug star=ship planet=ship)
 ::
 ::  TODO: make a "jog" library for ordered maps of sets
