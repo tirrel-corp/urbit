@@ -6,11 +6,11 @@
 +$  card  card:agent:gall
 +$  state-0
   $:  %0
-      config
       price=(unit price)
       referrals=(unit referral-policy)
     ::
-      =available-ships
+      =star-configs
+      =for-sale
       =sold-ships
       =ship-to-sell-date
   ==
@@ -51,47 +51,42 @@
     ^-  (quip card _state)
     ?-    -.update
       %set-price      `state(price `price.update)
-      %set-referrals  `state(referrals ref.update)
+      ::%set-referrals  `state(referrals ref.update)
     ::
-        %set-config
+        %add-star-config
+      ?<  (~(has by star-configs) who.update)
       =*  c  config.update
-      =/  cards=(list card)
-        =/  watch-card=(unit card)
-          ?~  prv.c  ~
-          =/  addr-c  (address-from-prv:key:eth u.prv.c)
-          :-  ~
-          :^  %pass  /address/(scot %p addr-c)  %agent
-          [[our.bowl %roller] %watch /txs/(scot %ux addr-c)]
-        ?~  prv
-          ?~(prv.c ~ (need watch-card)^~)
-        =/  old-addr  (address-from-prv:key:eth u.prv)
-        :-  :^  %pass  /address/(scot %p old-addr)  %agent
-            [[our.bowl %roller] %leave ~]
-        ?~(prv.c ~ (need watch-card)^~)
-      :-  cards
-      %_  state
-        who    who.c
-        prv    prv.c
-        proxy  proxy.c
-      ==
+      =.  prv.c
+        q:(need (de:base16:mimes:html prv.c))
+      =/  =address  (address-from-prv:key:eth prv.c)
+      :_  state(star-configs (~(put by star-configs) who.update c))
+      :_  ~
+      :^  %pass  /address/(scot %ux address)  %agent
+      [[our.bowl %roller] %watch /txs/(scot %ux address)]
+    ::
+        %del-star-config
+      =/  c=config  (~(got by star-configs) who.update)
+      =/  =address  (address-from-prv:key:eth prv.c)
+      :_  state(star-configs (~(del by star-configs) who.update))
+      :_  ~
+      :^  %pass  /address/(scot %ux address)  %agent
+      [[our.bowl %roller] %leave ~]
     ::
         %spawn-ships
-      ?>  ?=(^ who)
-      ?>  ?=(^ prv)
-      ?>  ?=(^ proxy)
-      ::  get nonce. if no nonce, fail
-      ::  generate and sign tx
-      ::  submit roller-action
+      =*  sel    sel.update
+      =*  who    who.update
+      =/  =config  (~(got by star-configs) who)
+      =*  prv    prv.config
+      =*  proxy  proxy.config
+      =/  addr  (address-from-prv:key:eth prv)
       =/  nonce=@
-        (need (scry-for %roller (unit @) /nonce/(scot %p u.who)/[u.proxy]))
-      =/  addr  (address-from-prv:key:eth u.prv)
-      =*  sel  sel.update
+        (need (scry-for %roller (unit @) /nonce/(scot %p who)/[proxy]))
       :_  state
       =|  cards=(list card)
       |^  ^-  (list card)
       ?:  ?=(%| -.sel)
         =/  unspawned=(list ship)
-          (scry-for %roller (list ship) /unspawned/(scot %p u.who))
+          (scry-for %roller (list ship) /unspawned/(scot %p who))
         =|  i=@ud
         |-
         ?:  ?|(?=(~ unspawned) (gte i p.sel))
@@ -101,10 +96,11 @@
           i          +(i)
           nonce      +(nonce)
           unspawned  t.unspawned
-          cards      [(spawn ship u.prv addr) cards]
+          cards      [(spawn ship) cards]
         ==
       =/  unspawned=(set ship)
-        (silt `(list ship)`(scry-for %roller (list ship) /unspawned/(scot %p u.who)))
+        %-  ~(gas in *(set ship))
+        (scry-for %roller (list ship) /unspawned/(scot %p who))
       =/  ships=(list ship)  ~(tap in p.sel)
       |-
       ?~  ships
@@ -114,14 +110,14 @@
       ?>  (~(has in unspawned) ship)
       %_  $
         ships  t.ships
-        cards  [(spawn ship u.prv addr) cards]
+        cards  [(spawn ship) cards]
       ==
       ::
       ++  spawn
-        |=  [=ship prv=@ addr=@ux]
+        |=  =ship
         ^-  card
         =/  =tx:naive:ntx
-          [[u.who u.proxy] %spawn ship addr]
+          [[who proxy] %spawn ship addr]
         =/  sig=octs
           (gen-tx:ntx nonce tx prv)
         :^  %pass  /spawn/(scot %p ship)  %agent
@@ -131,24 +127,25 @@
     ::
         %sell-ships
       ?>  ?=(^ price)
+      =*  who  who.update
       =/  =records
         =/  urec=(unit records)  (get:his sold-ships now.bowl)
         ?~(urec ~ u.urec)
-      =/  ships  ~(tap in available-ships)
+      =/  ships=(list ship)  ~(tap in (~(get ju for-sale) who))
       ?:  ?=(%| -.sel.update)
         ~|  "cannot sell more ships than we have"
         ?>  (lth p.sel.update (lent ships))
         =|  ships-to-be-sold=(set ship)
         |-
         ?~  ships
-          :-  (give /updates^~ [%sell-ships %&^ships-to-be-sold])
+          :-  (give /updates^~ [%sell-ships who %&^ships-to-be-sold])
           state(sold-ships (put:his sold-ships now.bowl records))
         =*  ship  i.ships
         %_  $
           ships              t.ships
           ships-to-be-sold   (~(put in ships-to-be-sold) ship)
           records            (~(put in records) [ship u.price referrals])
-          available-ships    (~(del in available-ships) ship)
+          for-sale           (~(del ju for-sale) who ship)
           ship-to-sell-date  (~(put by ship-to-sell-date) ship now.bowl)
         ==
       :-  (give /updates^~ update)
@@ -157,19 +154,19 @@
         state(sold-ships (put:his sold-ships now.bowl records))
       =*  ship  i.ships
       ~|  "cannot sell ship that does not exist"
-      ?>  (~(has in available-ships) ship)
+      ?>  (~(has ju for-sale) who ship)
       %_  $
         records            (~(put in records) [ship u.price referrals])
-        available-ships    (~(del in available-ships) ship)
+        for-sale           (~(del ju for-sale) who ship)
         ship-to-sell-date  (~(put by ship-to-sell-date) ship now.bowl)
       ==
     ::
-        %sell-from-referral
-      :-  (give /updates^~ update)
-      ::  check that a code is available and that the ship in question
-      ::  has referrals left to give out.
-      ::  if not, crash. if yes, then sell at the referral code price.
-      state
+::        %sell-from-referral
+::      :-  (give /updates^~ update)
+::      ::  check that a code is available and that the ship in question
+::      ::  has referrals left to give out.
+::      ::  if not, crash. if yes, then sell at the referral code price.
+::      state
     ==
   ::
   ++  give
@@ -210,25 +207,33 @@
   |^
   ?+    wire  (on-agent:def wire sign)
       [%address @ ~]
+    ?:  ?=(%kick -.sign)
+      :_  this
+      [%pass wire %agent [our.bowl %roller] %watch /txs/[i.t.wire]]^~
     ?.  ?=(%fact -.sign)
       `this
-    ?.  ?=(%txs p.cage.sign)
-      `this
-    =/  txs  !<((list roller-tx:dice) q.cage.sign)
-    [(process-txs txs) this]
+    ~&  p.cage.sign
+    ?+    p.cage.sign  !!
+        %tx
+      =/  tx  !<(roller-tx:dice q.cage.sign)
+      [(process-txs tx^~) this]
+    ::
+        %txs
+      =/  txs  !<((list roller-tx:dice) q.cage.sign)
+      [(process-txs txs) this]
+    ==
   ==
   ::
   ++  process-txs
     |=  txs=(list roller-tx:dice)
     ^-  (list card)
+    ~&  txs
     =|  ships=(set ship)
     |-
     ?~  txs
       ?~  ships  ~
-      :_  ~
-      :^  %pass  /add-ships/(scot %ux (mug txs))  %agent
-      :+  [our.bowl %naive-market]  %poke
-      naive-market-update+!>([%add-ships ships])
+      ~&  ships
+      ~
     =*  tx  i.txs
 ::        %add-ships
 ::      :-  (give /updates^~ update)

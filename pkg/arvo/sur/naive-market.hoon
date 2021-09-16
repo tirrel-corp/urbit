@@ -1,4 +1,5 @@
 |%
++$  address  @ux
 +$  price
   $%  [%price amount=@rd currency=@t]
       [%free ~]
@@ -10,19 +11,22 @@
 +$  record           [=ship =price ref=(unit referral-policy)]
 +$  records          (set record)
 ::
-+$  config  [who=(unit ship) prv=(unit @) proxy=(unit ?(%own %spawn))]
++$  config        [prv=@ proxy=?(%own %spawn)]
++$  star-configs  (map ship config)
+::
 +$  update
-  $%  [%set-config =config]
+  $%  [%add-star-config who=ship =config]
+      [%del-star-config who=ship]
       [%set-price =price]
-      [%set-referrals ref=(unit referral-policy)]
+      ::[%set-referrals ref=(unit referral-policy)]
     ::
-      [%spawn-ships sel=selector]
-      [%sell-ships sel=selector]
-      [%sell-from-referral ~]
+      [%spawn-ships who=ship sel=selector]
+      [%sell-ships who=ship sel=selector]
+      ::[%sell-from-referral who=ship]
   ==
 ::
 +$  ship-to-sell-date  (map ship time)
-+$  available-ships    (set ship)
++$  for-sale           (jug star=ship planet=ship)
 ::
 ::  TODO: make a "jog" library for ordered maps of sets
 +$  sold-ships         ((mop time records) gth)
