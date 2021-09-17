@@ -55,6 +55,8 @@
     ::
         %add-star-config
       ?<  (~(has by star-configs) who.update)
+      ::  TODO: ensure no two stars are owned by same address
+      ?>  =(%king (clan:title who.update))
       =*  c  config.update
       =.  prv.c
         q:(need (de:base16:mimes:html prv.c))
@@ -67,7 +69,10 @@
         %del-star-config
       =/  c=config  (~(got by star-configs) who.update)
       =/  =address  (address-from-prv:key:eth prv.c)
-      :_  state(star-configs (~(del by star-configs) who.update))
+      :_  %_  state
+            star-configs  (~(del by star-configs) who.update)
+            for-sale      (~(del by for-sale) who.update)
+          ==
       :_  ~
       :^  %pass  /star/(scot %p who.update)  %agent
       [[our.bowl %roller] %leave ~]
@@ -126,40 +131,68 @@
       --
     ::
         %sell-ships
+      |^
       ?>  ?=(^ price)
       =*  who  who.update
+      =*  to   to.update
       =/  =records
         =/  urec=(unit records)  (get:his sold-ships now.bowl)
         ?~(urec ~ u.urec)
       =/  ships=(list ship)  ~(tap in (~(get ju for-sale) who))
+      =/  c=config  (~(got by star-configs) who)
+      =/  from=address  (address-from-prv:key:eth prv.c)
+      =|  cards=(list card)
       ?:  ?=(%| -.sel.update)
         ~|  "cannot sell more ships than we have"
         ?>  (lth p.sel.update (lent ships))
         =|  ships-to-be-sold=(set ship)
         |-
-        ?~  ships
-          :-  (give /updates^~ [%sell-ships who %&^ships-to-be-sold])
-          state(sold-ships (put:his sold-ships now.bowl records))
+        ?:  =(0 p.sel.update)
+          :_  state(sold-ships (put:his sold-ships now.bowl records))
+          %+  weld  cards
+          (give /updates^~ [%sell-ships who %&^ships-to-be-sold to])
+        ?>  ?=(^ ships)
         =*  ship  i.ships
         %_  $
+          p.sel.update       (dec p.sel.update)
           ships              t.ships
           ships-to-be-sold   (~(put in ships-to-be-sold) ship)
           records            (~(put in records) [ship u.price referrals])
           for-sale           (~(del ju for-sale) who ship)
           sold-ship-to-date  (~(put by sold-ship-to-date) ship now.bowl)
+          cards              [(transfer-point ship who from to prv.c) cards]
         ==
-      :-  (give /updates^~ update)
+      =/  pending  ~(tap in p.sel.update)
       |-
-      ?~  ships
-        state(sold-ships (put:his sold-ships now.bowl records))
-      =*  ship  i.ships
+      ?~  pending
+        :_  state(sold-ships (put:his sold-ships now.bowl records))
+        %+  weld  cards
+        (give /updates^~ update)
+      ?>  ?=(^ ships)
+      =*  ship  i.pending
       ~|  "cannot sell ship that does not exist"
       ?>  (~(has ju for-sale) who ship)
       %_  $
+        pending            t.pending
         records            (~(put in records) [ship u.price referrals])
         for-sale           (~(del ju for-sale) who ship)
         sold-ship-to-date  (~(put by sold-ship-to-date) ship now.bowl)
+        cards              [(transfer-point ship who from to prv.c) cards]
       ==
+      ::
+      ++  transfer-point
+        |=  [=ship who=ship from=address to=address prv=@]
+        ^-  card
+        =/  =tx:naive:ntx
+          [[ship %own] %transfer-point to %&]
+        =/  nonce=@
+          (need (scry-for %roller (unit @) /nonce/(scot %p ship)/own))
+        =/  sig=octs
+          (gen-tx:ntx nonce tx prv)
+        :^  %pass  /transfer/(scot %p who)/(scot %p ship)  %agent
+        :+  [our.bowl %roller]  %poke
+        roller-action+!>([%submit | from q.sig %don tx])
+      --
     ::
         %sell-from-referral
       :-  (give /updates^~ update)

@@ -21,12 +21,12 @@
       [%set-referrals ref=(unit referral-policy)]
     ::
       [%spawn-ships who=ship sel=selector]
-      [%sell-ships who=ship sel=selector]
+      [%sell-ships who=ship sel=selector to=address]
       [%sell-from-referral who=ship]
   ==
 ::
 +$  sold-ship-to-date  (map ship time)
-+$  for-sale           (jug star=ship planet=ship)
++$  for-sale           (jug ship ship)
 ::
 ::  TODO: make a "jog" library for ordered maps of sets
 +$  sold-ships         ((mop time records) gth)
