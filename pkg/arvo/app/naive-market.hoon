@@ -61,7 +61,7 @@
       =/  =address  (address-from-prv:key:eth prv.c)
       :_  state(star-configs (~(put by star-configs) who.update c))
       :_  ~
-      :^  %pass  /address/(scot %ux address)  %agent
+      :^  %pass  /star/(scot %p who.update)  %agent
       [[our.bowl %roller] %watch /txs/(scot %ux address)]
     ::
         %del-star-config
@@ -69,7 +69,7 @@
       =/  =address  (address-from-prv:key:eth prv.c)
       :_  state(star-configs (~(del by star-configs) who.update))
       :_  ~
-      :^  %pass  /address/(scot %ux address)  %agent
+      :^  %pass  /star/(scot %p who.update)  %agent
       [[our.bowl %roller] %leave ~]
     ::
         %spawn-ships
@@ -206,46 +206,28 @@
   ^-  (quip card _this)
   |^
   ?+    wire  (on-agent:def wire sign)
-      [%address @ ~]
+      [%star @ ~]
+    =/  who=ship  (slav %p i.t.wire)
+    =/  con=config  (~(got by star-configs) who)
     ?:  ?=(%kick -.sign)
+      =/  =address  (address-from-prv:key:eth prv.con)
       :_  this
-      [%pass wire %agent [our.bowl %roller] %watch /txs/[i.t.wire]]^~
+      [%pass wire %agent [our.bowl %roller] %watch /txs/(scot %ux address)]^~
     ?.  ?=(%fact -.sign)
       `this
-    `this(state process)
-::
-::    ?+    p.cage.sign  !!
-::        %tx
-::      ::=/  tx  !<(roller-tx:dice q.cage.sign)
-::      `this(state process)
-::    ::
-::        %txs
-::      ::=/  txs  !<((list roller-tx:dice) q.cage.sign)
-::      `this(state process)
-::    ==
+    `this(state (on-star who con))
   ==
   ::
-  ++  process
+  ++  on-star
+    |=  [who=ship con=config]
     ^-  _state
-    =/  configs=(list (pair ship config))   ~(tap by star-configs)
-    |-
-    ?~  configs
-      state
-    =*  who  p.i.configs
-    =*  c    q.i.configs
-    =/  =address  (address-from-prv:key:eth prv.c)
-    =/  ships=(list ship)
-      %+  murn
-        (scry-for %roller (list ship) /ships/(scot %ux address))
-      |=  s=ship
-      ?.(=(%duke (clan:title s)) ~ `s)
-    |-
-    ?~  ships
-      ^$(configs t.configs)
-    %_  $
-      ships     t.ships
-      for-sale  (~(put ju for-sale) who i.ships)
-    ==
+    =/  =address  (address-from-prv:key:eth prv.con)
+    =-  state(for-sale (~(put by for-sale) who -))
+    %-  ~(gas in *(set ship))
+    %+  murn
+      (scry-for %roller (list ship) /ships/(scot %ux address))
+    |=  s=ship
+    ?.(=(%duke (clan:title s)) ~ `s)
   ::
   ++  scry-for
     |*  [dap=term =mold =path]
