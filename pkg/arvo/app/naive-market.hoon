@@ -115,7 +115,7 @@
       ?>  (~(has in unspawned) ship)
       %_  $
         ships  t.ships
-        cards  [(spawn ship) cards]
+        cards  [(spawn ship) (configure-keys ship) cards]
       ==
       ::
       ++  spawn
@@ -126,6 +126,20 @@
         =/  sig=octs
           (gen-tx:ntx nonce tx prv)
         :^  %pass  /spawn/(scot %p ship)  %agent
+        :+  [our.bowl %roller]  %poke
+        roller-action+!>([%submit | addr q.sig %don tx])
+      ::
+      :: TODO: figure out right constants
+      ++  configure-keys
+        |=  =ship
+        ^-  card
+        =/  =tx:naive:ntx
+          :+  [ship %own]
+            %configure-keys
+          [encrypt=*@ auth=*@ crypto-suite=*@ breach=%.n]
+        =/  sig=octs
+          (gen-tx:ntx nonce=0 tx prv)
+        :^  %pass  /configure/(scot %p ship)  %agent
         :+  [our.bowl %roller]  %poke
         roller-action+!>([%submit | addr q.sig %don tx])
       --
