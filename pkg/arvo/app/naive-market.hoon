@@ -101,7 +101,7 @@
           i          +(i)
           nonce      +(nonce)
           unspawned  t.unspawned
-          cards      [(spawn ship) cards]
+          cards      [(configure-keys ship) (spawn ship) cards]
         ==
       =/  unspawned=(set ship)
         %-  ~(gas in *(set ship))
@@ -115,7 +115,7 @@
       ?>  (~(has in unspawned) ship)
       %_  $
         ships  t.ships
-        cards  [(spawn ship) (configure-keys ship) cards]
+        cards  [(configure-keys ship) (spawn ship) cards]
       ==
       ::
       ++  spawn
