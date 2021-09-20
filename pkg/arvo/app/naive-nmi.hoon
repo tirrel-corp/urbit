@@ -1,7 +1,7 @@
-:: nmi-hook [tirrel]
+:: naive-nmi [tirrel]
 ::
 ::
-/-  *nmi-hook
+/-  *naive-nmi
 /+  default-agent, dbug, verb, server
 |%
 +$  card  card:agent:gall
@@ -78,9 +78,9 @@
   ?>  (team:title our.bowl src.bowl)
   |^
   ?+    mark  (on-poke:def mark vase)
-      %nmi-hook-action
+      %naive-nmi-action
     =^  cards  state
-      (nmi-hook-action !<(action vase))
+      (naive-nmi-action !<(action vase))
     [cards this]
   ::
       %handle-http-request
@@ -131,7 +131,7 @@
         =/  =action  [-.p.act amount.p.act eyre-id]
         :_  [[201 ~] `(json-to-octs:srv s+eyre-id)]
         =-  [%pass /post-req/[eyre-id] %agent [our dap]:bowl %poke -]~
-        [%nmi-hook-action !>(action)]
+        [%naive-nmi-action !>(action)]
       ::
           %complete-payment
         =/  =action  [-.p.act token.p.act]
@@ -140,7 +140,7 @@
           `[[400 ~] ~]
         :_  [[201 ~] `(json-to-octs:srv s+eyre-id)]
         =-  [%pass /post-req/[eyre-id] %agent [our dap]:bowl %poke -]~
-        [%nmi-hook-action !>(action)]
+        [%naive-nmi-action !>(action)]
       ==
     ::
     ++  dejs
@@ -161,7 +161,7 @@
         $(ext.req `%html, site.req [%index ~])
       ?.  ?=(%json u.ext.req)
         =/  file=(unit octs)
-          (get-file-at /app/nmi site.req u.ext.req)
+          (get-file-at /app/naive-nmi site.req u.ext.req)
         ?~  file   not-found:gen:srv
         ?+  u.ext.req  not-found:gen:srv
           %html  (html-response:gen:srv u.file)
@@ -193,7 +193,7 @@
       .^(@ %cx path)
     --
   ::
-  ++  nmi-hook-action
+  ++  naive-nmi-action
     |=  =action
     ^-  (quip card _state)
     |^
@@ -289,26 +289,25 @@
     ^-  (quip card _state)
     |^
     ?.  ?=(%finished -.res)  `state
-    ?+    wire  ~|('unknown request type coming from nmi-hook' !!)
+    ?+    wire  ~|('unknown request type coming from naive-nmi' !!)
         [%step1 @ ~]
       =/  request-id  i.t.wire
       =/  nd  (normalize-data request-id full-file.res)
       ?.  ?=(%& -.nd)
         +.nd
-      (process-step1 request-id +.nd)
+      `(process-step1 request-id +.nd)
     ::
         [%step3 @ ~]
       =/  request-id  (~(got by token-to-request) i.t.wire)
       =/  nd  (normalize-data request-id full-file.res)
       ?.  ?=(%& -.nd)
         +.nd
-      (process-step3 request-id +.nd)
+      `(process-step3 request-id +.nd)
     ==
     ::
     ++  process-step1
       |=  [request-id=cord tx=transaction m=(map @t @t)]
-      ^-  (quip card _state)
-      :-  ~
+      ^-  _state
       ?>  ?=(%pending -.tx)
       =/  =time  (~(got by request-to-time) request-id)
       =/  result-code  (~(get by m) 'result-code')
@@ -339,8 +338,7 @@
     ::
     ++  process-step3
       |=  [request-id=cord tx=transaction m=(map @t @t)]
-      ^-  (quip card _state)
-      :-  ~
+      ^-  _state
       ?>  ?=(%pending -.tx)
       =/  result-code  (~(get by m) 'result-code')
       =/  result-text  (~(get by m) 'result-text')

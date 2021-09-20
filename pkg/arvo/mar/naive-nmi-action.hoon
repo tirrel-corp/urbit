@@ -1,11 +1,11 @@
-/-  *nmi-hook
+/-  *naive-nmi
 ::
 |_  act=action
 ++  grad  %noun
 ++  grow
   |%
   ++  noun  act
-  ++  nmi-hook-action  act
+  ++  naive-nmi-action  act
   --
 ::
 ++  grab
