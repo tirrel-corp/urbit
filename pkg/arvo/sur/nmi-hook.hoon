@@ -17,6 +17,8 @@
 +$  action
   $%  [%initiate-payment info=init-info request-id=cord]
       [%complete-payment token-id=cord]
+      [%set-api-key key=cord]
+      [%set-redirect-url url=cord]
   ==
 --
 

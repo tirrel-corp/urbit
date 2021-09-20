@@ -31,15 +31,15 @@
 ::
 +$  state-0
   $:  %0
-      api-key=cord
-      endpoint=cord
-      redirect-url=cord
+      api-key=(unit cord)
+      redirect-url=(unit cord)
       =transactions
       =request-to-time
       =request-to-token
       =token-to-request
   ==
 ::  TODO: add rate-limits for POST requests
+++  api-url  'https://secure.networkmerchants.com/api/v2/three-step'
 --
 ::
 =|  state-0
@@ -55,35 +55,22 @@
 ++  on-init
   =/  =state-0
     :*  %0
-        '2F822Rw39fx762MaV7Yy86jXGTC7sCDy'
-        'https://secure.networkmerchants.com/api/v2/three-step'
-        'https://urbit.studio/pay'
+        ~
+        ~
         ~
         ~
         ~
         ~
     ==
-  :-  [%pass /connect %arvo %e %connect [~ /'pay'] dap.bowl]~
-  this(state state-0)
+  :_  this(state state-0)
+  [%pass /connect %arvo %e %connect [~ /'pay'] dap.bowl]~
 ::
 ++  on-save   !>(state)
 ++  on-load
   |=  old-vase=vase
   ^-  (quip card _this)
-  =/  =state-0
-    :*  %0
-        '2F822Rw39fx762MaV7Yy86jXGTC7sCDy'
-        'https://secure.networkmerchants.com/api/v2/three-step'
-        'https://urbit.studio/pay'
-        ~
-        ~
-        ~
-        ~
-    ==
-  :-  ~
-  this(state state-0)
-  ::=/  old  !<(state-0 old-vase)
-  ::`this(state old)
+  =/  old  !<(state-0 old-vase)
+  `this(state old)
 ::
 ++  on-poke
   |=  [=mark =vase]
@@ -167,6 +154,7 @@
       =*  srv  server
       |=  [hed=header-list:http req=request-line:srv]
       ^-  simple-payload:http
+      ::  TODO: make this generic
       =?  site.req  ?=([%'pay' *] site.req)
         t.site.req
       ?~  ext.req
@@ -210,7 +198,12 @@
     ^-  (quip card _state)
     |^
     ?-    -.action
+      %set-api-key       `state(api-key `key.action)
+      %set-redirect-url  `state(redirect-url `url.action)
+    ::
         %initiate-payment
+      ?>  ?=(^ api-key)
+      ?>  ?=(^ redirect-url)
       =/  =time  (~(got by request-to-time) request-id.action)
       =/  =wire  /step1/[request-id.action]
       :-  =-  [%pass wire %arvo %i %request -]~
@@ -222,6 +215,8 @@
       ==
     ::
         %complete-payment
+      ?>  ?=(^ api-key)
+      ?>  ?=(^ redirect-url)
       =/  =wire  /step3/[token-id.action]
       :_  state
       =-  [%pass wire %arvo %i %request -]~
@@ -231,60 +226,42 @@
     ++  request-step1
       |=  init-info
       ^-  request:http
-      :^  %'POST'  endpoint
+      ?>  ?=(^ api-key)
+      ?>  ?=(^ redirect-url)
+      :^  %'POST'  api-url
         ['Content-type' 'text/xml']~
       :-  ~
       %-  xml-to-octs
-      ^-  manx
-      %+  parent:xml
-        %sale
-      :~  (child:xml %api-key api-key)
-          (child:xml %redirect-url redirect-url)
-          (child:xml %amount amount)
-        ::
-          ::%+  parent:xml
-          ::  %billing
-          :::~  (child:xml %first-name first-name.billing)
-          ::    (child:xml %last-name last-name.billing)
-          ::    ::(child:xml %address1 address1.billing)
-          ::    ::(child:xml %address2 address2.billing)
-          ::    ::(child:xml %city city.billing)
-          ::    ::(child:xml %state state.billing)
-          ::    (child:xml %postal postal.billing)
-          ::    ::(child:xml %phone phone.billing)
-          ::    (child:xml %email email.billing)
-          ::==
+      ;sale
+        ;api-key: "{(trip u.api-key)}"
+        ;redirect-url: "{(trip u.redirect-url)}"
+        ;amount: "{(trip amount)}"
       ==
+      ::%+  parent:xml
+      ::  %billing
+      :::~  (child:xml %first-name first-name.billing)
+      ::    (child:xml %last-name last-name.billing)
+      ::    ::(child:xml %address1 address1.billing)
+      ::    ::(child:xml %address2 address2.billing)
+      ::    ::(child:xml %city city.billing)
+      ::    ::(child:xml %state state.billing)
+      ::    (child:xml %postal postal.billing)
+      ::    ::(child:xml %phone phone.billing)
+      ::    (child:xml %email email.billing)
+      ::==
     ::
     ++  request-step3
       |=  token=cord
       ^-  request:http
-      :^  %'POST'  endpoint
+      ?>  ?=(^ api-key)
+      :^  %'POST'  api-url
         ['Content-type' 'text/xml']~
       :-  ~
       %-  xml-to-octs
-      ^-  manx
-      %+  parent:xml
-        %complete-action
-      :~  (child:xml %api-key api-key)
-          (child:xml %token-id token)
+      ;complete-action
+        ;api-key: "{(trip u.api-key)}"
+        ;token-id: "{(trip token)}"
       ==
-    ::
-    ++  xml
-      |%
-      ++  parent
-        |=  [tag=term children=marl]
-        ^-  manx
-        :-  [tag ~]
-        children
-      ::
-      ++  child
-        |=  [tag=term body=cord]
-        ^-  manx
-        :+  [tag ~]
-          [[%$ [%$ (trip body)] ~] ~]
-        ~
-      --
     ::
     ++  xml-to-octs
       |=  xml=manx
@@ -323,9 +300,9 @@
         [%step3 @ ~]
       =/  request-id  (~(got by token-to-request) i.t.wire)
       =/  nd  (normalize-data request-id full-file.res)
-      ?:  ?=(%& -.nd)
-        (process-step3 request-id +.nd)
-      +.nd
+      ?.  ?=(%& -.nd)
+        +.nd
+      (process-step3 request-id +.nd)
     ==
     ::
     ++  process-step1
