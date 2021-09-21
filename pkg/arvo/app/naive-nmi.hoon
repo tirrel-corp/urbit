@@ -197,9 +197,21 @@
       ?>  ?=(^ redirect-url)
       =/  =time  (~(got by request-to-time) request-id.action)
       =/  =wire  /step1/[request-id.action]
-      ::  TODO: scry for price of all assets via naive-market
-      ::  and scry to make sure sale of these assets is valid
-      =/  total-price  ''
+      =/  =price:nam
+        (need (scry-for %naive-market (unit price:nam) /price))
+      =/  inventory=(set ship)
+        (scry-for %naive-market (set ship) /inventory/(scot %p who.action))
+      ?>  ?:  ?=(%| -.sel.action)
+            (lte p.sel.action ~(wyt in inventory))
+          =((~(int in p.sel.action) inventory) p.sel.action)
+      =/  total-price=cord
+        %+  rsh  [3 2]
+        %+  scot  %ui
+        %+  mul  amount.price
+        ?:  ?=(%| -.sel.action)
+          p.sel.action
+        ~(wyt in p.sel.action)
+      ?>  ?=(%'USD' currency.price)
       :-  =-  [%pass wire %arvo %i %request -]~
           :_  *outbound-config:iris
           (request-step1 who.action sel.action total-price)
@@ -213,6 +225,9 @@
       ?>  ?=(^ api-key)
       ?>  ?=(^ redirect-url)
       =/  =wire  /step3/[token-id.action]
+      =/  =price:nam
+        (need (scry-for %naive-market (unit price:nam) /price))
+      ?>  ?=(%'USD' currency.price)
       ::  TODO: one last scry to make sure the price and sale of
       ::  assets is still valid, then proceed
       :_  state
@@ -232,7 +247,7 @@
       ;sale
         ;api-key: "{(trip u.api-key)}"
         ;redirect-url: "{(trip u.redirect-url)}"
-        ;amount: "{(trip amount)}"
+        ;amount: "{(trip amount)}.00"
       ==
       ::%+  parent:xml
       ::  %billing
@@ -264,6 +279,16 @@
       |=  xml=manx
       ^-  octs
       (as-octt:mimes:html (en-xml:html xml))
+    ::
+    ++  scry-for
+      |*  [dap=term =mold =path]
+      .^  mold
+        %gx
+        (scot %p our.bowl)
+        dap
+        (scot %da now.bowl)
+        (snoc `^path`path %noun)
+      ==
     --
   --
 ::

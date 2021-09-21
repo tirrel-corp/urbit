@@ -1,9 +1,6 @@
 |%
 +$  address  @ux
-+$  price
-  $%  [%price amount=@rd currency=@t]
-      [%free ~]
-  ==
++$  price  [amount=@ud currency=@ta]
 ::
 +$  selector  (each (set ship) @ud)
 ::

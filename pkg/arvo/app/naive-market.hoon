@@ -246,6 +246,11 @@
   ^-  (unit (unit cage))
   ?+    path  (on-peek:def path)
     [%x %export ~]  ``noun+!>(state)
+    [%x %price ~]   ``noun+!>(price)
+  ::
+      [%x %inventory @ ~]
+    =/  who=ship  (slav %p i.t.t.path)
+    ``noun+!>(`(set ship)`(~(get ju for-sale) who))
   ==
 ::
 ++  on-agent
