@@ -11,23 +11,6 @@
 ::    cvv=*'999'
 ::    zip=*'77777'
 ::==
-+$  error  [result-code=@ud result-text=@ta]
-+$  finis
-  $:  transaction-id=@ud
-      authorization-code=@ud
-      cvv-result=@tas
-  ==
-+$  transaction
-  $%  [%success =init-info token=(unit @t) =finis]
-      [%failure =init-info token=(unit @t) error=(unit error)]
-      [%pending =init-info token=(unit @t)]
-  ==
-::
-+$  request-to-token  (map request-id=cord token=cord)
-+$  token-to-request  (map token=cord request-id=cord)
-+$  request-to-time   (map request-id=cord time)
-+$  transactions      ((mop time transaction) gth)
-++  orm               ((on time transaction) gth)
 ::
 +$  state-0
   $:  %0
@@ -53,17 +36,8 @@
     def   ~(. (default-agent this %|) bowl)
 ::
 ++  on-init
-  =/  =state-0
-    :*  %0
-        ~
-        ~
-        ~
-        ~
-        ~
-        ~
-    ==
-  :_  this(state state-0)
-  [%pass /connect %arvo %e %connect [~ /'pay'] dap.bowl]~
+  :_  this
+  [%pass /connect %arvo %e %connect [~ /'market'] dap.bowl]~
 ::
 ++  on-save   !>(state)
 ++  on-load
@@ -111,8 +85,8 @@
     `not-found:gen:server
     ::
     +$  partial-action
-      $%  [%initiate-payment amount=cord]
-          [%complete-payment token=cord]
+      $%  [%initiate-sale who=ship sel=selector:nam]
+          [%complete-sale token=cord]
       ==
     ::
     ++  handle-post-request
@@ -127,13 +101,13 @@
       ?:  ?=(%| -.act)
         `[[400 ~] ~]
       ?-    -.p.act
-          %initiate-payment
-        =/  =action  [-.p.act amount.p.act eyre-id]
+          %initiate-sale
+        =/  =action  [-.p.act eyre-id who.p.act sel.p.act]
         :_  [[201 ~] `(json-to-octs:srv s+eyre-id)]
         =-  [%pass /post-req/[eyre-id] %agent [our dap]:bowl %poke -]~
         [%naive-nmi-action !>(action)]
       ::
-          %complete-payment
+          %complete-sale
         =/  =action  [-.p.act token.p.act]
         ?~  maybe-request=(~(get by token-to-request) token.p.act)
           ~&  %failed
@@ -145,17 +119,34 @@
     ::
     ++  dejs
       =,  dejs:format
+      |^
       %-  of
-      :~  [%initiate-payment so]
-          [%complete-payment so]
+      :~  [%initiate-sale init-sale]
+          [%complete-sale so]
       ==
+      ::
+      ++  init-sale
+        %-  ot
+        :~  who+(su ;~(pfix sig fed:ag))
+            sel+selector
+        ==
+      ::
+      ++  selector
+        |=  jon=json
+        ^-  selector:nam
+        ?>  ?=(^ jon)
+        ?+  -.jon  !!
+          %n  [%| (ni jon)]
+          %a  [%& ((as (su ;~(pfix sig fed:ag))) jon)]
+        ==
+      --
     ::
     ++  handle-get-request
       =*  srv  server
       |=  [hed=header-list:http req=request-line:srv]
       ^-  simple-payload:http
       ::  TODO: make this generic
-      =?  site.req  ?=([%'pay' *] site.req)
+      =?  site.req  ?=([%'market' *] site.req)
         t.site.req
       ?~  ext.req
         $(ext.req `%html, site.req [%index ~])
@@ -201,30 +192,36 @@
       %set-api-key       `state(api-key `key.action)
       %set-redirect-url  `state(redirect-url `url.action)
     ::
-        %initiate-payment
+        %initiate-sale
       ?>  ?=(^ api-key)
       ?>  ?=(^ redirect-url)
       =/  =time  (~(got by request-to-time) request-id.action)
       =/  =wire  /step1/[request-id.action]
+      ::  TODO: scry for price of all assets via naive-market
+      ::  and scry to make sure sale of these assets is valid
+      =/  total-price  ''
       :-  =-  [%pass wire %arvo %i %request -]~
-          [(request-step1 info.action) *outbound-config:iris]
+          :_  *outbound-config:iris
+          (request-step1 who.action sel.action total-price)
       %_    state
           transactions
         %^  put:orm  transactions  time
-        [%pending info.action ~]
+        [%pending [who.action sel.action total-price] ~]
       ==
     ::
-        %complete-payment
+        %complete-sale
       ?>  ?=(^ api-key)
       ?>  ?=(^ redirect-url)
       =/  =wire  /step3/[token-id.action]
+      ::  TODO: one last scry to make sure the price and sale of
+      ::  assets is still valid, then proceed
       :_  state
       =-  [%pass wire %arvo %i %request -]~
       [(request-step3 token-id.action) *outbound-config:iris]
     ==
     ::
     ++  request-step1
-      |=  init-info
+      |=  [who=ship sel=selector:nam amount=cord]
       ^-  request:http
       ?>  ?=(^ api-key)
       ?>  ?=(^ redirect-url)
@@ -317,20 +314,20 @@
         %_    state
             transactions
           %^  put:orm  transactions  time
-          [%failure init-info.tx token.tx ~]
+          [%failure info.tx token.tx ~]
         ==
       ?.  =('100' u.result-code)
         %_    state
             transactions
           %^  put:orm  transactions  time
-          :^  %failure  init-info.tx  token.tx
+          :^  %failure  info.tx  token.tx
           `[(slav %ud u.result-code) u.result-text]
         ==
       =/  action-token  `@t`(rsh [3 54] (need form-url))
       %_    state
           transactions
         %^  put:orm  transactions  time
-        [%pending init-info.tx `action-token]
+        [%pending info.tx `action-token]
       ::
         request-to-token  (~(put by request-to-token) request-id action-token)
         token-to-request  (~(put by token-to-request) action-token request-id)
@@ -347,12 +344,12 @@
           transactions
         %^  put:orm  transactions  time
         ?.  ?&(?=(^ result-code) ?=(^ result-text))
-          [%failure init-info.tx token.tx ~]
+          [%failure info.tx token.tx ~]
         ?.  =('100' u.result-code)
-          :^  %failure  init-info.tx  token.tx
+          :^  %failure  info.tx  token.tx
           `[(slav %ud u.result-code) u.result-text]
         ~&  %success
-        :^  %success  init-info.tx  token.tx
+        :^  %success  info.tx  token.tx
         ::  TODO: parse result
         *finis
       ::
@@ -374,7 +371,7 @@
         %_    state
             transactions
           %^  put:orm  transactions  time
-          [%failure init-info.tx token.tx ~]
+          [%failure info.tx token.tx ~]
         ==
       =/  xml=(unit manx)
         (de-xml:html `@t`q.data.u.full-file)
@@ -383,7 +380,7 @@
         %_    state
             transactions
           %^  put:orm  transactions  time
-          [%failure init-info.tx token.tx ~]
+          [%failure info.tx token.tx ~]
         ==
       [%& [tx (map-from-xml-body u.xml)]]
       ::

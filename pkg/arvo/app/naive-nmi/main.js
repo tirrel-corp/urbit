@@ -1,9 +1,9 @@
 let startPayment = async () => {
   let data = `{
-    "initiate-payment": "20.00"
+    "initiate-sale": "20.00"
   }`;
 
-  const res = await fetch(`/pay`, {
+  const res = await fetch(`/market`, {
     method: 'POST',
     headers: { 'Content-type': 'text/json' },
     body: data
@@ -14,7 +14,7 @@ let startPayment = async () => {
 
 let pollForStepOneResponse = (file, stepTwo = () => {}) => {
   setTimeout(() => {
-    fetch(`/pay/${file}.json`, {
+    fetch(`/market/${file}.json`, {
       method: 'GET',
       mode: 'cors',
       headers: {
@@ -51,10 +51,10 @@ let stepTwo = (tokenId) => {
 
 let stepThree = (tokenId) => {
   let data = `{
-    "complete-payment": "${tokenId}"
+    "complete-sale": "${tokenId}"
   }`;
 
-  fetch(`/pay`, {
+  fetch(`/market`, {
     method: 'POST',
     headers: { 'Content-type': 'text/json' },
     body: data
@@ -69,7 +69,7 @@ let stepThree = (tokenId) => {
     status.innerText = "Payment Successful!"
   })
   .catch((error) => {
-    window.location.replace("https://urbit.studio/pay");
+    window.location.replace("https://urbit.studio/market");
   });
 };
 
