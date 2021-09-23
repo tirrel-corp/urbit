@@ -23,7 +23,9 @@
   ==
 ::
 +$  sold-ship-to-date  (map ship time)
-+$  for-sale           (jug ship ship)
++$  for-sale           (jug ship ship
++$  keys               [encrypt=@ auth=@]
++$  ship-to-keys       (map ship keys)
 ::
 ::  TODO: make a "jog" library for ordered maps of sets
 +$  sold-ships         ((mop time records) gth)

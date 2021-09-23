@@ -84,6 +84,10 @@
       =*  prv    prv.config
       =*  proxy  proxy.config
       =/  addr  (address-from-prv:key:eth prv)
+      ~|  "cannot spawn more than 50 ships in a batch"
+      ?>  ?:  ?=(%| -.sel)
+            (gte 50 p.sel)
+          (gte 50 ~(wyt in p.sel))
       =/  nonce=@
         (need (scry-for %roller (unit @) /nonce/(scot %p who)/[proxy]))
       :_  state
@@ -129,14 +133,21 @@
         :+  [our.bowl %roller]  %poke
         roller-action+!>([%submit | addr q.sig %don tx])
       ::
-      :: TODO: figure out right constants
       ++  configure-keys
         |=  =ship
         ^-  card
+        ::  TODO: this is a first pass to replicate logic in
+        ::  gen/key.hoon
+        =/  bur  (shaz (add ship (shaz eny.bowl)))
+        =/  cub  (pit:nu:crub:crypto 512 bur)
+        =/  pub=pass  pub:ex:cub
+        =/  bod=@     (rsh 3 pub)
+        =/  encrypt=@  (rsh 8 bod)
+        =/  auth=@     (end 8 bod)
         =/  =tx:naive:ntx
           :+  [ship %own]
             %configure-keys
-          [encrypt=*@ auth=*@ crypto-suite=*@ breach=%.n]
+          [encrypt auth suite=1 breach=%.n]
         =/  sig=octs
           (gen-tx:ntx nonce=0 tx prv)
         :^  %pass  /configure/(scot %p ship)  %agent
@@ -276,6 +287,7 @@
     ::  TODO: ensure we remove pending sales from set
     =/  =address  (address-from-prv:key:eth prv.con)
     =-  state(for-sale (~(put by for-sale) who -))
+    %-  ~(dif in ~(key by sold-ship-to-date))
     %-  ~(gas in *(set ship))
     %+  murn
       (scry-for %roller (list ship) /ships/(scot %ux address))
