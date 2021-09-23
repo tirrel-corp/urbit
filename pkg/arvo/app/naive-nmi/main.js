@@ -1,7 +1,10 @@
-let startPayment = async () => {
-  let data = `{
-    "initiate-sale": "20.00"
-  }`;
+let startPayment = async (who, sel) => {
+  let data = JSON.stringify({
+    "initiate-sale": {
+      who: who,
+      sel: sel
+    }
+  });
 
   const res = await fetch(`/market`, {
     method: 'POST',
@@ -69,12 +72,12 @@ let stepThree = (tokenId) => {
     status.innerText = "Payment Successful!"
   })
   .catch((error) => {
-    window.location.replace("https://urbit.studio/market");
+    window.location.replace("http://urbit.studio/market");
   });
 };
 
 if (window.location.protocol !== 'https:') {
-  location.href = location.href.replace("http://", "https://");
+  //location.href = location.href.replace("http://", "https://");
 }
 
 let params = (new URL(document.location)).searchParams;
@@ -89,8 +92,9 @@ if (!!tokenId && tokenId.length > 0) {
   firstStep.style = "";
 
   let button = document.getElementById('step1-button');
+
   button.onclick = async () => {
-    let firstResponse = await startPayment();
+    let firstResponse = await startPayment('~wanzod', 1);
     pollForStepOneResponse(firstResponse, stepTwo);
   };
 

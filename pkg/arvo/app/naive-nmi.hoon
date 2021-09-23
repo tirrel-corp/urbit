@@ -5,12 +5,6 @@
 /+  default-agent, dbug, verb, server
 |%
 +$  card  card:agent:gall
-::$:  card=*'4111111111111111'
-::    expiration=*'10/25'
-::    amount=*'1.00'
-::    cvv=*'999'
-::    zip=*'77777'
-::==
 ::
 +$  state-0
   $:  %0
@@ -21,7 +15,6 @@
       =request-to-token
       =token-to-request
   ==
-::  TODO: add rate-limits for POST requests
 ++  api-url  'https://secure.networkmerchants.com/api/v2/three-step'
 --
 ::
@@ -58,6 +51,7 @@
     [cards this]
   ::
       %handle-http-request
+    ::  TODO: add rate-limits for POST requests
     =+  !<([eyre-id=@ta =inbound-request:eyre] vase)
     =|  sim=simple-payload:http
     =^  cards  sim
@@ -78,11 +72,10 @@
       url.request.inbound-request
     =*  req-head  header-list.request.inbound-request
     =*  req-body  body.request.inbound-request
-    ?:  ?=(%'GET' method.request.inbound-request)
-      `(handle-get-request req-head req-line)
-    ?:  ?=(%'POST' method.request.inbound-request)
-      (handle-post-request req-head req-line req-body)
-    `not-found:gen:server
+    ?+    method.request.inbound-request  `not-found:gen:server
+      %'GET'   `(handle-get-request req-head req-line)
+      %'POST'  (handle-post-request req-head req-line req-body)
+    ==
     ::
     +$  partial-action
       $%  [%initiate-sale who=ship sel=selector:nam]
@@ -96,13 +89,16 @@
         `[[400 ~] ~]
       ?~  maybe-json=(de-json:html q.u.bod)
         `[[400 ~] ~]
+      ~&  u.maybe-json
       =/  act=(each partial-action tang)
         (mule |.((dejs u.maybe-json)))
+      ~&  act
       ?:  ?=(%| -.act)
         `[[400 ~] ~]
       ?-    -.p.act
           %initiate-sale
         =/  =action  [-.p.act eyre-id who.p.act sel.p.act]
+        ~&  action
         :_  [[201 ~] `(json-to-octs:srv s+eyre-id)]
         =-  [%pass /post-req/[eyre-id] %agent [our dap]:bowl %poke -]~
         [%naive-nmi-action !>(action)]
@@ -150,6 +146,7 @@
         t.site.req
       ?~  ext.req
         $(ext.req `%html, site.req [%index ~])
+      ~&  [site.req ext.req]
       ?.  ?=(%json u.ext.req)
         =/  file=(unit octs)
           (get-file-at /app/naive-nmi site.req u.ext.req)
@@ -195,72 +192,76 @@
         %initiate-sale
       ?>  ?=(^ api-key)
       ?>  ?=(^ redirect-url)
+      ~&  action
       =/  =time  (~(got by request-to-time) request-id.action)
       =/  =wire  /step1/[request-id.action]
-      =/  =price:nam
-        (need (scry-for %naive-market (unit price:nam) /price))
-      =/  inventory=(set ship)
-        (scry-for %naive-market (set ship) /inventory/(scot %p who.action))
-      ?>  ?:  ?=(%| -.sel.action)
-            (lte p.sel.action ~(wyt in inventory))
-          =((~(int in p.sel.action) inventory) p.sel.action)
-      =/  total-price=cord
-        %+  rsh  [3 2]
-        %+  scot  %ui
-        %+  mul  amount.price
-        ?:  ?=(%| -.sel.action)
-          p.sel.action
-        ~(wyt in p.sel.action)
-      ?>  ?=(%'USD' currency.price)
+      =/  total-price
+        (calc-total-price who.action sel.action)
+      ~&  total-price
       :-  =-  [%pass wire %arvo %i %request -]~
           :_  *outbound-config:iris
           (request-step1 who.action sel.action total-price)
       %_    state
           transactions
         %^  put:orm  transactions  time
-        [%pending [who.action sel.action total-price] ~]
+        [%pending [who.action sel.action %'USD' total-price] ~]
       ==
     ::
         %complete-sale
       ?>  ?=(^ api-key)
       ?>  ?=(^ redirect-url)
       =/  =wire  /step3/[token-id.action]
-      =/  =price:nam
-        (need (scry-for %naive-market (unit price:nam) /price))
-      ?>  ?=(%'USD' currency.price)
-      ::  TODO: one last scry to make sure the price and sale of
-      ::  assets is still valid, then proceed
+      =/  request-id    (~(got by token-to-request) token-id.action)
+      =/  =time         (~(got by request-to-time) request-id)
+      =/  =transaction  (got:orm transactions time)
+      ?>  ?=(%pending -.transaction)
+      =*  info  info.transaction
+      =/  curr-total-price
+        (calc-total-price who.info sel.info)
+      ~|  %price-expired-for-sale
+      ?>  =(total-price.info curr-total-price)
       :_  state
       =-  [%pass wire %arvo %i %request -]~
       [(request-step3 token-id.action) *outbound-config:iris]
     ==
+    ::
+    ++  calc-total-price
+      |=  [who=ship sel=selector:nam]
+      ^-  cord
+      =/  =price:nam
+        (need (scry-for %naive-market (unit price:nam) /price))
+      ?>  ?=(%'USD' currency.price)
+      =/  inventory=(set ship)
+        (scry-for %naive-market (set ship) /inventory/(scot %p who))
+      ?>  ?:  ?=(%| -.sel)
+            (lte p.sel ~(wyt in inventory))
+          =((~(int in p.sel) inventory) p.sel)
+      %+  rsh  [3 2]
+      %+  scot  %ui
+      %+  mul  amount.price
+      ?:(?=(%| -.sel) p.sel ~(wyt in p.sel))
     ::
     ++  request-step1
       |=  [who=ship sel=selector:nam amount=cord]
       ^-  request:http
       ?>  ?=(^ api-key)
       ?>  ?=(^ redirect-url)
+      =.  amount  (crip (weld (trip amount) (trip '.00')))
       :^  %'POST'  api-url
         ['Content-type' 'text/xml']~
       :-  ~
       %-  xml-to-octs
       ;sale
-        ;api-key: "{(trip u.api-key)}"
-        ;redirect-url: "{(trip u.redirect-url)}"
-        ;amount: "{(trip amount)}.00"
+        ;api-key
+          ;+  ;/  (trip u.api-key)
+        ==
+        ;redirect-url
+          ;+  ;/  (trip u.redirect-url)
+        ==
+        ;amount
+          ;+  ;/  (trip amount)
+        ==
       ==
-      ::%+  parent:xml
-      ::  %billing
-      :::~  (child:xml %first-name first-name.billing)
-      ::    (child:xml %last-name last-name.billing)
-      ::    ::(child:xml %address1 address1.billing)
-      ::    ::(child:xml %address2 address2.billing)
-      ::    ::(child:xml %city city.billing)
-      ::    ::(child:xml %state state.billing)
-      ::    (child:xml %postal postal.billing)
-      ::    ::(child:xml %phone phone.billing)
-      ::    (child:xml %email email.billing)
-      ::==
     ::
     ++  request-step3
       |=  token=cord
@@ -271,8 +272,12 @@
       :-  ~
       %-  xml-to-octs
       ;complete-action
-        ;api-key: "{(trip u.api-key)}"
-        ;token-id: "{(trip token)}"
+        ;api-key
+          ;+  ;/  (trip u.api-key)
+        ==
+        ;token-id
+          ;+  ;/  (trip token)
+        ==
       ==
     ::
     ++  xml-to-octs
@@ -324,7 +329,7 @@
       =/  nd  (normalize-data request-id full-file.res)
       ?.  ?=(%& -.nd)
         +.nd
-      `(process-step3 request-id +.nd)
+      (process-step3 request-id +.nd)
     ==
     ::
     ++  process-step1
@@ -360,28 +365,42 @@
     ::
     ++  process-step3
       |=  [request-id=cord tx=transaction m=(map @t @t)]
-      ^-  _state
+      ^-  (quip card _state)
       ?>  ?=(%pending -.tx)
       =/  result-code  (~(get by m) 'result-code')
       =/  result-text  (~(get by m) 'result-text')
       =/  =time  (~(got by request-to-time) request-id)
-      %_    state
-          transactions
-        %^  put:orm  transactions  time
-        ?.  ?&(?=(^ result-code) ?=(^ result-text))
-          [%failure info.tx token.tx ~]
-        ?.  =('100' u.result-code)
+      =/  token  (need token.tx)
+      ~&  m
+      =:  request-to-token  (~(del by request-to-token) request-id)
+          request-to-time   (~(del by request-to-time) request-id)
+          token-to-request  (~(del by token-to-request) token)
+        ==
+      ?.  ?&(?=(^ result-code) ?=(^ result-text))
+        :-  ~
+        %_    state
+            transactions
+          (put:orm transactions time [%failure info.tx token.tx ~])
+        ==
+      ?.  =('100' u.result-code)
+        :-  ~
+        %_    state
+            transactions
+          %^  put:orm  transactions  time
           :^  %failure  info.tx  token.tx
           `[(slav %ud u.result-code) u.result-text]
-        ~&  %success
-        :^  %success  info.tx  token.tx
-        ::  TODO: parse result
-        *finis
-      ::
-        request-to-token  (~(del by request-to-token) request-id)
-        request-to-time  (~(del by request-to-time) request-id)
-        token-to-request  (~(del by token-to-request) (need token.tx))
-      ==
+        ==
+      :_  %_    state
+              transactions
+            %^  put:orm  transactions  time
+            :^  %success  info.tx  token.tx
+            ::  TODO: parse result
+            *finis
+          ==
+      ~&  info.tx
+      =-  [%pass /sell-ship/[token] %agent [our.bowl %naive-market] %poke -]~
+      :-  %naive-market-update
+      !>(`update:nam`[%sell-ships who.info.tx sel.info.tx 0x1234])
     ::
     ++  normalize-data
       |=  [request-id=cord full-file=(unit mime-data:iris)]

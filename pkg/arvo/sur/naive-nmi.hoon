@@ -32,8 +32,8 @@
 +$  request-to-time   (map request-id=cord time)
 +$  transactions      ((mop time transaction) gth)
 ++  orm               ((on time transaction) gth)
-
-+$  info  [who=ship sel=selector:nam total-price=cord]
++$  info  [who=ship sel=selector:nam currency=@ta total-price=cord]
+::
 +$  action
   $%  [%initiate-sale request-id=cord who=ship sel=selector:nam]
       [%complete-sale token-id=cord]
