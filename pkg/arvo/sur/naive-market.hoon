@@ -23,7 +23,7 @@
   ==
 ::
 +$  sold-ship-to-date  (map ship time)
-+$  for-sale           (jug ship ship
++$  for-sale           (jug ship ship)
 +$  keys               [encrypt=@ auth=@]
 +$  ship-to-keys       (map ship keys)
 ::

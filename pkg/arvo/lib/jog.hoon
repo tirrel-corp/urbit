@@ -1,4 +1,5 @@
-::  [tirrel]
+::  [tirrel]: lib/jog.hoon
+::
 ::  +jog: a mold builder for ordered maps of sets, the ordered map
 ::  equivalent of a jug.
 ::
@@ -16,44 +17,50 @@
 ::
 ++  jo
   |*  [key=mold val=mold]
-  |=  compare=$-([key key] ?)
   =>  |%
       +$  item  [key=key val=(set val)]
-      ++  hit  ((on key (set val)) compare)
       --
+  |=  compare=$-([key key] ?)
   |%
-  ++  del                                               ::  del key-set pair
+  ++  hit   ((on key (set val)) compare)
+  ++  del                                               ::  del key-val pair
+    |=  [a=(tree item) b=key c=val]
+    ^+  a
+    ?~  d=(~(del in (get a b)) c)
+      +:(del:hit a d)
+    (put:hit a b d)
+  ::
+  ++  dif                                               ::  dif key-set pair
     |=  [a=(tree item) b=key c=(set val)]
     ^+  a
-    =/  d=(set val)
-      (~(del in (get b)) c)
-    ?~  d
-      (del:hit a b)
+    ?~  d=(~(dif in (get a b)) c)
+      +:(del:hit a d)
     (put:hit a b d)
   ::
   ++  gas                                               ::  concatenate
-    |=  [a=(tree item) b=(list [p=key q=(set val)])]
+    |=  [a=(tree item) b=(list (pair key (set val)))]
     |-  ^+  a
-    ?~  b
-      a
-    $(b t.b, a (put:hit p.i.b q.i.b))
+    ?~  b  a
+    $(b t.b, a (put:hit a p.i.b q.i.b))
   ::
   ++  get                                               ::  gets set by key
     |=  [a=(tree item) b=key]
     ^-  (set val)
-    =/  c=(unit (set val))
-      (get:hit a b)
-    ?~(c ~ u.c)
+    ?~(c=(get:hit a b) ~ u.c)
   ::
   ++  has                                               ::  existence check
     |=  [a=(tree item) b=key c=val]
     ^-  ?
     (~(has in (get a b)) c)
   ::
-  ++  put                                               ::  add key-set pair
+  ++  put                                               ::  add key-val pair
+    |=  [a=(tree item) b=key c=val]
+    ^+  a
+    (put:hit a b (~(put in (get a b)) c))
+  ::
+  ++  uni                                               ::  add key-set pair
     |=  [a=(tree item) b=key c=(set val)]
     ^+  a
-    %^  put:hit  a  b
-    (~(uni in (get b)) c)
+    (put:hit a b (~(uni in (get a b)) c))
   --
 --
