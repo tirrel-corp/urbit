@@ -1,3 +1,10 @@
+::  [tirrel]
+::  +jog: a mold builder for ordered maps of sets, the ordered map
+::  equivalent of a jug.
+::
+::  +jo: a treap with specified horiziontal order, where the values are
+::  sets
+::
 |%
 ++  jog
   |*  [key=mold value=mold]
@@ -18,11 +25,11 @@
   ++  del                                               ::  del key-set pair
     |=  [a=(tree item) b=key c=(set val)]
     ^+  a
-    =+  d=(get b)
-    =+  e=(~(del in d) c)
-    ?~  e
+    =/  d=(set val)
+      (~(del in (get b)) c)
+    ?~  d
       (del:hit a b)
-    (put:hit a b e)
+    (put:hit a b d)
   ::
   ++  gas                                               ::  concatenate
     |=  [a=(tree item) b=(list [p=key q=(set val)])]
@@ -34,7 +41,8 @@
   ++  get                                               ::  gets set by key
     |=  [a=(tree item) b=key]
     ^-  (set val)
-    =/  c=(unit (set val))  (get:hit a b)
+    =/  c=(unit (set val))
+      (get:hit a b)
     ?~(c ~ u.c)
   ::
   ++  has                                               ::  existence check
@@ -45,8 +53,7 @@
   ++  put                                               ::  add key-set pair
     |=  [a=(tree item) b=key c=(set val)]
     ^+  a
-    =/  d=(set val)  (get b)
     %^  put:hit  a  b
-    (~(uni in d) c)
+    (~(uni in (get b)) c)
   --
 --
