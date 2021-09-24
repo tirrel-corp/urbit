@@ -27,14 +27,14 @@
     |=  [a=(tree item) b=key c=val]
     ^+  a
     ?~  d=(~(del in (get a b)) c)
-      +:(del:hit a d)
+      +:(del:hit a b)
     (put:hit a b d)
   ::
   ++  dif                                               ::  dif key-set pair
     |=  [a=(tree item) b=key c=(set val)]
     ^+  a
     ?~  d=(~(dif in (get a b)) c)
-      +:(del:hit a d)
+      +:(del:hit a b)
     (put:hit a b d)
   ::
   ++  gas                                               ::  concatenate
