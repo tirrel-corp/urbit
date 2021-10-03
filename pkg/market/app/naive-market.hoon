@@ -54,17 +54,26 @@
       %set-referrals  `state(referrals ref.update)
     ::
         %add-star-config
+      |^
       ?<  (~(has by star-configs) who.update)
-      ::  TODO: ensure no two stars are owned by same address
       ?>  =(%king (clan:title who.update))
       =*  c  config.update
       =.  prv.c
         q:(need (de:base16:mimes:html prv.c))
+      ?<  (check-dupes prv.c)
       =/  =address  (address-from-prv:key:eth prv.c)
       :_  state(star-configs (~(put by star-configs) who.update c))
       :_  ~
       :^  %pass  /star/(scot %p who.update)  %agent
       [[our.bowl %roller] %watch /txs/(scot %ux address)]
+      ::
+      ++  check-dupes
+        |=  prv=@
+        =/  cfgs  ~(val by star-configs)
+        |-  ^-  ?
+        ?~  cfgs  %|
+        ?:(=(prv.i.cfgs prv) %& $(cfgs t.cfgs))
+      --
     ::
         %del-star-config
       =/  c=config  (~(got by star-configs) who.update)
