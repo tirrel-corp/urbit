@@ -1,9 +1,8 @@
 :~  title+'Tirrel Suite'
     info+'Tools for making money.'
     color+0x0
-    glob-http+['https://bootstrap.urbit.org/glob-0v1.2tl0s.b79o6.j2hh8.toj4k.p9vrp.glob' 0v1.2tl0s.b79o6.j2hh8.toj4k.p9vrp]
-    ::glob-ames+~zod^0v0
-    base+'grid'
+    glob-ames+[~zod 0v0]
+    base+'market'
     version+[0 0 1]
     website+'https://tirrel.io'
     license+'MIT'
