@@ -1,7 +1,6 @@
 :~  title+'Tirrel Suite'
     info+'Tools for making money.'
     color+0x0
-    image+'https://media.urbit.org/docs/userspace/dist/wut.svg'
     base+'market'
     glob-ames+[~zod 0v0]
     version+[0 0 1]
