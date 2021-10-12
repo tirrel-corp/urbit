@@ -28,9 +28,7 @@
 +*  this  .
     def   ~(. (default-agent this %|) bowl)
 ::
-++  on-init
-  :_  this
-  [%pass /connect %arvo %e %connect [~ /'market'] dap.bowl]~
+++  on-init  `this
 ::
 ++  on-save   !>(state)
 ++  on-load
@@ -187,7 +185,21 @@
     |^
     ?-    -.action
       %set-api-key       `state(api-key `key.action)
-      %set-redirect-url  `state(redirect-url `url.action)
+    ::
+        %set-site
+      =*  host    host.action
+      =*  suffix  suffix.action
+      =/  full-url=cord
+        %+  rap  3
+        :-  'https://'
+        ?~  suffix
+          host^~
+        ~[host '/' u.suffix]
+      :_  state(redirect-url `full-url)
+      =-  [%pass /eyre %arvo %e %connect [`host -] dap.bowl]~
+      ?~  suffix
+        ~
+      u.suffix^~
     ::
         %initiate-sale
       ?>  ?=(^ api-key)

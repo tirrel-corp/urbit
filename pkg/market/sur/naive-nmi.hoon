@@ -38,7 +38,7 @@
   $%  [%initiate-sale request-id=cord who=ship sel=selector:nam]
       [%complete-sale token-id=cord]
       [%set-api-key key=cord]
-      [%set-redirect-url url=cord]
+      [%set-site host=cord suffix=(unit term)]
   ==
 --
 
