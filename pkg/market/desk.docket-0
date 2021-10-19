@@ -1,6 +1,8 @@
-:~  title+'Tirrel Suite'
+:~  title+'Studio'
     info+'Tools for making money.'
-    color+0x0
+    ::color+0x92.efaf
+    color+0x96.d294
+    ::color+0x3c.c35b
     base+'market'
     glob-ames+[~zod 0v0]
     version+[0 0 1]
