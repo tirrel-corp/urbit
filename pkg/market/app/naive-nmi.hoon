@@ -196,13 +196,13 @@
         ?~  suffix
           host^~
         ~[host '/' u.suffix]
-      =/  old-pax=path  ?~(suffix.site ~ u.suffix.site^~)
-      =/  old-host      ?~(site ~ `host.site)
+      =/  old-pax=path  ?~(site ~ ?~(suffix.u.site ~ u.suffix.u.site^~))
+      =/  old-host      ?~(site ~ `host.u.site)
       =/  suf-pax=path  ?~(suffix ~ u.suffix^~)
       :_  state(redirect-url `full-url, site `[host suffix])
       %-  zing
       :~  ?~  site  ~
-          [%pass /eyre %arvo %e %disconnect [old-host old-pax] dap.bowl]~
+          [%pass /eyre %arvo %e %disconnect [old-host old-pax]]~
         ::
           [%pass /eyre %arvo %e %connect [`host suf-pax] dap.bowl]~
       ==
