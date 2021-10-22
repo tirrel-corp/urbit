@@ -34,14 +34,31 @@
         <div id="static-site-page" class="h-100 w-100 flex justify-center items-center bg-gray white">
           <p>Static Site Page</p>
         </div>
-        <div id="mailing-list-page" class="h-100 w-100 flex justify-center items-center">
-          <p>Mailing List Page</p>
+        <div id="mailing-list-page" class="h-100 w-100">
+          <h1>Mailing List Page</h1>
+          <h2>Credentials</h2>
+          <div class="w-100 flex">
+            <div>Sendgrid api key </div>
+            <input id="api-input"/>
+            <button id="api-button">Set</button>
+          </div>
+          <div class="w-100 flex">
+            <div>Email Address</div>
+            <input id="email-input"/>
+            <button id="email-button">Set</button>
+          </div>
+          <div class="w-100 flex">
+            <div>Ship Url</div>
+            <input id="url-input"/>
+            <button id="url-button">Set</button>
+          </div>
         </div>
       </div>
     </div>
     <script type="text/javascript" src="/session.js"></script>
     <script type="text/javascript" src="/apps/market/desk.js"></script>
     <script type="text/javascript" src="./vendor/urbit-http-api.js"></script>
+    <script type="text/javascript" src="./js/api.js"></script>
     <script type="text/javascript" src="./js/main.js"></script>
   </body>
 </html>
