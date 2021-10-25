@@ -2,8 +2,8 @@ const api = new Urbit('', '', 'market');
 api.ship = window.ship;
 window.api = api;
 
-var subscription = null;
-var errorCount = 0;
+let subscription = null;
+let errorCount = 0;
 
 api.onError = (e) => {
   errorCount++;
