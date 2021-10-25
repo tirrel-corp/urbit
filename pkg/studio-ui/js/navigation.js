@@ -1,19 +1,16 @@
 //== Top Level Navigation ======================================================
 
 const planetSaleBtn = document.querySelector("#planet-sale-btn");
-const staticSiteBtn = document.querySelector("#static-site-btn");
-const mailingListBtn = document.querySelector("#mailing-list-btn");
+const publishBtn = document.querySelector("#publish-btn");
 
 const landingPage = document.querySelector("#landing-page");
 const planetSalePage = document.querySelector("#planet-sale-page");
-const staticSitePage = document.querySelector("#static-site-page");
-const mailingListPage = document.querySelector("#mailing-list-page");
+const publishPage = document.querySelector("#publish-page");
 
 const pages = {
   landing: landingPage,
   planetSale: planetSalePage,
-  staticSite: staticSitePage,
-  mailingList: mailingListPage
+  publish: publishPage,
 };
 
 const showPage = (key = null) => {
@@ -28,8 +25,7 @@ const showPage = (key = null) => {
 };
 
 planetSaleBtn.onclick = () => { showPage('planetSale'); };
-staticSiteBtn.onclick = () => { showPage('staticSite'); };
-mailingListBtn.onclick = () => { showPage('mailingList'); };
+publishBtn.onclick = () => { showPage('publish'); };
 
 showPage('landing');
 
