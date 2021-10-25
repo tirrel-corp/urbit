@@ -4,9 +4,7 @@ const apikeyInp = document.querySelector("#api-input");
 const emailInp  = document.querySelector("#email-input");
 const urlInp    = document.querySelector("#url-input");
 
-const apikeyBtn = document.querySelector("#api-button");
-const emailBtn  = document.querySelector("#email-button");
-const urlBtn    = document.querySelector("#url-button");
+const credsBtn  = document.querySelector("#creds-button");
 
 let creds = {
   "api-key": '',
@@ -14,17 +12,9 @@ let creds = {
   "ship-url": '',
 }
 
-apikeyBtn.onclick = () => {
-  creds["api-key"] = apikeyInp.value;
-  mailerPoke({"set-creds": creds});
-}
-
-emailBtn.onclick = () => {
-  creds["email"] = emailInp.value;
-  mailerPoke({"set-creds": creds});
-}
-
-urlBtn.onclick = () => {
+credsBtn.onclick = () => {
+  creds["api-key"]  = apikeyInp.value;
+  creds["email"]    = emailInp.value;
   creds["ship-url"] = urlInp.value;
   mailerPoke({"set-creds": creds});
 }
