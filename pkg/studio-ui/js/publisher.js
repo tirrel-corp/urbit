@@ -1,8 +1,8 @@
 //== Mailing List Settings =====================================================
 
-const apikeyInp = document.querySelector("#sendgrid-api-input");
-const emailInp  = document.querySelector("#sendgrid-email-input");
-const urlInp    = document.querySelector("#sendgrid-url-input");
+const sgApikeyInp = document.querySelector("#sendgrid-api-input");
+const sgEmailInp  = document.querySelector("#sendgrid-email-input");
+const sgUrlInp    = document.querySelector("#sendgrid-url-input");
 
 const credsBtn  = document.querySelector("#sendgrid-creds-button");
 
@@ -13,9 +13,9 @@ let creds = {
 }
 
 credsBtn.onclick = () => {
-  creds["api-key"]  = apikeyInp.value;
-  creds["email"]    = emailInp.value;
-  creds["ship-url"] = urlInp.value;
+  creds["api-key"]  = sgApikeyInp.value;
+  creds["email"]    = sgEmailInp.value;
+  creds["ship-url"] = sgUrlInp.value;
   mailerPoke({"set-creds": creds});
 }
 
@@ -23,9 +23,9 @@ mailerScry('/creds').then((res) => {
   console.log('creds', res);
   if (res !== null) {
     creds = res;
-    apikeyInp.value = creds["api-key"];
-    emailInp.value  = creds["email"];
-    urlInp.value    = creds["ship-url"];
+    sgApikeyInp.value = creds["api-key"];
+    sgEmailInp.value  = creds["email"];
+    sgUrlInp.value    = creds["ship-url"];
   }
 });
 
@@ -57,7 +57,7 @@ addFlowBtn.onclick = () => {
         index: indexInp.value,
         mark: markInp.value,
         serve: !!serveInp.value,
-        email: emailInp.value,
+        email: !!emailInp.value,
       }
     }
   });
@@ -84,8 +84,8 @@ pipeScry('/flows').then((res) => {
     Object.keys(flows).forEach((f) => {
       console.log(flows[f]);
       let option = document.createElement('option');
-      option.value = flows[f];
-      option.textContent = flows[f];
+      option.value = f;
+      option.textContent = f;
       flowRemoveNameInp.appendChild(option);
     });
   }

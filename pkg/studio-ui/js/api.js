@@ -45,6 +45,7 @@ const mailerPoke = (json) => {
 }
 
 const pipePoke = (json) => {
+  console.log(json);
   return api.poke({
     app: 'pipe',
     mark: 'pipe-action',
