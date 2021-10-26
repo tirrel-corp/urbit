@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1">
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css" />
   </head>
-  <body class="sans-serif near-black w-100 h-100 absolute overflow-hidden overflow-y-auto">
+  <body class="sans-serif near-black w-100 h-100 absolute overflow-hidden">
     <div class="w-100 flex items-center justify-between bb b--near-black b pa3" style="height: 3rem;">
       <a href="/" class="near-black no-underline pointer">&#8592;</a>
       <span>Studio</span>
@@ -21,31 +21,77 @@
           Planet Sales
         </span>
       </div>
-      <div class="h-100 w-100 w-75-ns">
+      <div class="h-100 w-100 w-75-ns overflow-y-auto">
         <div id="landing-page" class="h-100 w-100 flex justify-center items-center">
           <p class="w5 tc">Tirrel Studio turns your Urbit into a tool for making money.</p>
         </div>
         <div id="publish-page" class="h-100 w-100 pa3">
-          <h2>Mailing Lists</h2>
-          <p class="pt3 b">Credentials</p>
-          <div class="w-100 flex pb2 pt2">
-            <p class="w5 mr2">Sendgrid API Key</p>
-            <input id="api-input" class="w5 pa2 mr2 ba b--near-black input-reset"/>
+          <div class="w-100">
+            <h2>Mailing Lists</h2>
+            <div class="w-100">
+              <p class="pt3 b">Credentials</p>
+              <div class="w-100 flex pb2 pt2">
+                <p class="w5 mr2">Sendgrid API Key</p>
+                <input id="sendgrid-api-input" class="w5 pa2 mr2 ba b--near-black input-reset" placeholder="SG.asdf" />
+              </div>
+              <div class="w-100 flex pb2 pt2">
+                <p class="w5 mr2">Sender Email Address</p>
+                <input id="sendgrid-email-input" class="w5 pa2 mr2 ba b--near-black input-reset" placeholder="me@urbit.org" />
+              </div>
+              <div class="w-100 flex pb2 pt2">
+                <p class="w5 mr2">Ship URL</p>
+                <input id="sendgrid-url-input" class="w5 pa2 mr2 ba b--near-black input-reset" placeholder="https://zod.me" />
+              </div>
+              <div class="w-100 flex pt2 justify-center" style="width:32rem;">
+                <button id="sendgrid-creds-button" class="w5 pa3 bg-near-black white bn hover-bg-mid-gray button-reset">Set Credentials</button>
+              </div>
+            </div>
           </div>
-          <div class="w-100 flex pb2 pt2">
-            <p class="w5 mr2">Sender Email Address</p>
-            <input id="email-input" class="w5 pa2 mr2 ba b--near-black input-reset"/>
+          <div class="w-100">
+            <h2 class="mt5">Static Sites</h2>
+            <div class="w-100">
+              <p class="pt3 b">Add Flow</p>
+              <div class="w-100 flex pb2 pt2">
+                <p class="w5 mr2">Name</p>
+                <input id="flow-name-input" class="w5 pa2 mr2 ba b--near-black input-reset" placeholder="blog" />
+              </div>
+              <div class="w-100 flex pb2 pt2">
+                <p class="w5 mr2">Source Graph</p>
+                <input id="flow-res-input" class="w5 pa2 mr2 ba b--near-black input-reset" placeholder="~bitbet-bolbel/blog" />
+              </div>
+              <div class="w-100 flex pb2 pt2">
+                <p class="w5 mr2">Web URL To Serve To</p>
+                <input id="flow-index-input" class="w5 pa2 mr2 ba b--near-black input-reset" placeholder="blog" />
+              </div>
+              <div class="w-100 flex pb2 pt2">
+                <p class="w5 mr2">HTML Renderer Mark</p>
+                <input id="flow-mark-input" class="w5 pa2 mr2 ba b--near-black input-reset" placeholder="pipe-template-blog-index" />
+              </div>
+              <div class="w-100 flex pb2 pt2 items-center">
+                <div class="w5 mr2 flex items-center">
+                  <p class="mr3">Serve Webpage?</p>
+                  <input id="flow-serve-input" type="checkbox" class="pa2" />
+                </div>
+                <div class="w5 mr2 flex items-center">
+                  <p class="mr3">Mail Posts to Mailing List?</p>
+                  <input id="flow-email-input" type="checkbox" class="pa2" />
+                </div>
+              </div>
+              <div class="flex pt2 justify-center" style="width: 32rem;">
+                <button id="add-flow-btn" class="w5 pa3 bg-near-black white bn hover-bg-mid-gray button-reset">Add Flow</button>
+              </div>
+            </div>
+            <div class="w-100 mt5 pb3">
+              <p class="pt3 b">Remove Flow</p>
+              <div class="w-100 flex pb2 pt2">
+                <p class="w5 mr2">Name</p>
+                <input id="flow-remove-name-input" class="w5 pa2 mr2 ba b--near-black input-reset" placeholder="blog"/>
+              </div>
+              <div class="flex pt2 justify-center" style="width: 32rem;">
+                <button id="remove-flow-btn" class="w5 pa3 bg-near-black white bn hover-bg-mid-gray button-reset">Remove Flow</button>
+              </div>
+            </div>
           </div>
-          <div class="w-100 flex pb2 pt2">
-            <p class="w5 mr2">Ship URL</p>
-            <input class="w5 pa2 mr2 ba b--near-black input-reset" id="url-input" />
-          </div>
-          <div class="w-100 flex pt2">
-            <div class="w5 mr2"></div>
-            <button class="w5 pa3 bg-near-black white bn hover-bg-mid-gray button-reset" id="creds-button">Set Credentials</button>
-          </div>
-          <h2 class="mt5">Static Sites</h2>
-          <p class="pt3 b">Coming Soon</p>
         </div>
         <div id="planet-sale-page" class="h-100 w-100 flex justify-center items-center bg-near-black white">
           <p>Planet Sale Page</p>
@@ -57,6 +103,6 @@
     <script type="text/javascript" src="./vendor/urbit-http-api.js"></script>
     <script type="text/javascript" src="./js/navigation.js"></script>
     <script type="text/javascript" src="./js/api.js"></script>
-    <script type="text/javascript" src="./js/mailer.js"></script>
+    <script type="text/javascript" src="./js/publisher.js"></script>
   </body>
 </html>

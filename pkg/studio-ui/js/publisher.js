@@ -41,41 +41,35 @@ const emailInp    = document.querySelector("#flow-email-input");
 const addFlowBtn = document.querySelector("#add-flow-btn");
 
 addFlowBtn.onclick = () => {
+  const res = resourceInp.value.split("/");
+  if (res.length !== 2) { return; }
+  const ship = res[0];
+  const name = res[1];
+
   pipePoke({
     add: {
-      name: "foo",
+      name: flowNameInp.value,
       flow: {
         resource: {
-          ship: "~zod",
-          name: "my-blog-4283"
+          ship: ship,
+          name: name
         },
-        index: "/",
-        mark: "pipe-template-email",
-        serve: true,
-        email: true,
+        index: indexInp.value,
+        mark: markInp.value,
+        serve: !!serveInp.value,
+        email: emailInp.value,
       }
     }
   });
 };
 
 const flowRemoveNameInp = document.querySelector("#flow-remove-name-input");
-
 const removeFlowBtn = document.querySelector("#remove-flow-btn");
 
 removeFlowBtn.onclick = () => {
   pipePoke({
-    add: {
-      name: "foo",
-      flow: {
-        resource: {
-          ship: "~zod",
-          name: "my-blog-4283"
-        },
-        index: "/",
-        mark: "pipe-template-email",
-        serve: true,
-        email: true,
-      }
+    remove: {
+      name: flowRemoveNameInp.value
     }
   });
 };
