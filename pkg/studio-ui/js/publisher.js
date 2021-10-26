@@ -74,4 +74,20 @@ removeFlowBtn.onclick = () => {
   });
 };
 
+let flows = {};
+
+pipeScry('/flows').then((res) => {
+  console.log('flows', res);
+  if (res !== null) {
+    flows = res;
+
+    Object.keys(flows).forEach((f) => {
+      console.log(flows[f]);
+      let option = document.createElement('option');
+      option.value = flows[f];
+      option.textContent = flows[f];
+      flowRemoveNameInp.appendChild(option);
+    });
+  }
+});
 
