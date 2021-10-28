@@ -53,3 +53,19 @@ const pipePoke = (json) => {
   });
 }
 
+const naiveNMIPoke = (json) => {
+  return api.poke({
+    app: 'naive-nmi',
+    mark: 'naive-nmi-action',
+    json
+  });
+};
+
+const naiveMarketPoke = (json) => {
+  return api.poke({
+    app: 'naive-market',
+    mark: 'naive-market-update',
+    json
+  });
+};
+
