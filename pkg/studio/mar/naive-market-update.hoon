@@ -1,4 +1,4 @@
-/-  *naive-market
+/+  *naive-market
 ::
 |_  upd=update
 ++  grad  %noun
@@ -11,5 +11,6 @@
 ++  grab
   |%
   ++  noun  update
+  ++  json  update:dejs
   --
 --
