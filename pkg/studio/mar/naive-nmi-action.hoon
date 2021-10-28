@@ -1,4 +1,4 @@
-/-  *naive-nmi
+/+  *naive-nmi
 ::
 |_  act=action
 ++  grad  %noun
@@ -11,5 +11,6 @@
 ++  grab
   |%
   ++  noun  action
+  ++  json  action:dejs
   --
 --
