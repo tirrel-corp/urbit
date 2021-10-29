@@ -6,6 +6,7 @@
   |%
   ++  noun  upd
   ++  naive-market-update  upd
+  ++  json  (update:enjs upd)
   --
 ::
 ++  grab
