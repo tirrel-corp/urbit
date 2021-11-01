@@ -29,12 +29,16 @@ api.onOpen = () => {
 }
 
 const mailerScry = (path) => {
-  return api.scry({app: 'mailer', path: path});
+  return api.scry({ app: 'mailer', path });
 }
 
 const pipeScry = (path) => {
-  return api.scry({app: 'pipe', path: path});
+  return api.scry({ app: 'pipe', path });
 }
+
+const naiveNMIScry = (path) => {
+  return api.scry({ app: 'naive-nmi', path });
+};
 
 const mailerPoke = (json) => {
   return api.poke({

@@ -476,6 +476,12 @@
   ^-  (unit (unit cage))
   ?+    path  (on-peek:def path)
     [%x %export ~]  ``noun+!>(state)
+  ::
+      [%x %site ~]    
+    :^  ~  ~  %json
+    !>  ^-  json
+    ?~  site  ~
+    s+host.u.site
   ==
 ::
 ++  on-leave  on-leave:def

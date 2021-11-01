@@ -1,20 +1,20 @@
 //== Top Level Navigation ======================================================
 
-const planetSaleBtn = document.querySelector("#planet-sale-btn");
+const saleBtn = document.querySelector("#sale-btn");
 const publishBtn = document.querySelector("#publish-btn");
 
 const landingPage = document.querySelector("#landing-page");
-const planetSalePage = document.querySelector("#planet-sale-page");
+const salePage = document.querySelector("#sale-page");
 const publishPage = document.querySelector("#publish-page");
 
 const buttons = {
-  planetSale: planetSaleBtn,
+  sale: saleBtn,
   publish: publishBtn
 };
 
 const pages = {
   landing: landingPage,
-  planetSale: planetSalePage,
+  sale: salePage,
   publish: publishPage,
 };
 
@@ -36,7 +36,7 @@ const showPage = (key = null) => {
   });
 };
 
-planetSaleBtn.onclick = () => { showPage('planetSale'); };
+saleBtn.onclick = () => { showPage('sale'); };
 publishBtn.onclick = () => { showPage('publish'); };
 
 showPage('landing');

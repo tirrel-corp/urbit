@@ -17,7 +17,7 @@
         <span id="publish-btn" class="pa3 db bb b--near-black pointer hover-bg-light-gray">
           Publishing
         </span>
-        <span id="planet-sale-btn" class="pa3 db bb b--near-black pointer hover-bg-light-gray">
+        <span id="sale-btn" class="pa3 db bb b--near-black pointer hover-bg-light-gray">
           Planet Sales
         </span>
       </div>
@@ -92,8 +92,18 @@
             </div>
           </div>
         </div>
-        <div id="planet-sale-page" class="h-100 w-100 flex justify-center items-center bg-near-black white">
-          <p>Planet Sale Page</p>
+        <div id="sale-page" class="h-100 w-100 pa3">
+          <div class="w-100">
+            <h2>Planet Site Settings</h2>
+            <p class="pt3 b">Set Site's Domain Name</p>
+            <div class="w-100 flex pb2 pt2">
+              <p class="w5 mr2">Domain Name</p>
+              <input id="domain-name-input" class="w5 pa2 mr2 ba b--near-black input-reset" placeholder="planetsale.com" />
+            </div>
+            <div class="w-100 flex pt2 justify-center" style="width:32rem;">
+              <button id="domain-name-button" class="w5 pa3 bg-near-black white bn hover-bg-mid-gray button-reset">Set Domain Name</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -103,5 +113,6 @@
     <script type="text/javascript" src="./js/navigation.js"></script>
     <script type="text/javascript" src="./js/api.js"></script>
     <script type="text/javascript" src="./js/publisher.js"></script>
+    <script type="text/javascript" src="./js/seller.js"></script>
   </body>
 </html>
