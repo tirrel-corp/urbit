@@ -477,11 +477,17 @@
   ?+    path  (on-peek:def path)
     [%x %export ~]  ``noun+!>(state)
   ::
-      [%x %site ~]    
+      [%x %site ~]
     :^  ~  ~  %json
     !>  ^-  json
     ?~  site  ~
     s+host.u.site
+  ::
+      [%x %api-key ~]
+    :^  ~  ~  %json
+    !>  ^-  json
+    ?~  api-key  ~
+    s+u.api-key
   ==
 ::
 ++  on-leave  on-leave:def
