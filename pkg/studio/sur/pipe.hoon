@@ -1,6 +1,11 @@
 /-  *post
 |%
-+$  flow  [=resource =index =mark serve=? email=?]
++$  flow
+  $:  =resource
+      =index
+      site=(unit term)
+      email=(unit term)
+  ==
 +$  action
   $%  [%add name=term flow]
       [%remove name=term]

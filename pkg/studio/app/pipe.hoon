@@ -5,11 +5,14 @@
 /+  default-agent, dbug, verb, graph, pipe-json
 |%
 +$  card  card:agent:gall
++$  template  $-(update:store:graph website)
 +$  state-0
   $:  %0
       flows=(map name=term flow)
       sites=(map name=term website)
       uid-to-name=(jug uid name=term)
+      site-templates=(map term template)
+      email-templates=(map term template)
   ==
 --
 ::
@@ -27,8 +30,10 @@
 ::
 ++  on-init
   ^-  (quip card _this)
-  :_  this(state [%0 ~ ~ ~])
-  [%pass /graph %agent [our.bowl %graph-store] %watch /updates]^~
+  :_  this(state load-templates:pc)
+  :*  [%pass /graph %agent [our.bowl %graph-store] %watch /updates]
+      next-templates:pc
+  ==
 ::
 ++  on-save  !>(state)
 ++  on-load
@@ -36,7 +41,8 @@
   ^-  (quip card _this)
 ::  `this(state *state-0)
   =/  old  !<(state-0 old-vase)
-  `this(state old)
+  :-  next-templates:pc
+  this(state old)
 ::
 ++  on-poke
   |=  [=mark =vase]
@@ -53,28 +59,25 @@
   ++  pipe-action
     |=  =action
     ^-  (quip card _state)
-    |^
     ?-    -.action
         %add
       ?<  (~(has by flows) name.action)
-      =/  to-website=$-(update:store:graph website)  (build:pc mark.action)
-      =/  =website
-        %-  to-website
-        (get-add-nodes:pc resource.action index.action)
-      :-  %-  zing
-          :~  (poke-ob-hook mark.action)^~
-              (give:pc name.action website)^~
-              ?.  serve.action  ~
-              (serve:pc name.action website)
-          ==
-      %_    state
-        flows  (~(put by flows) name.action +>.action)
-        sites  (~(put by sites) name.action website)
-      ::
-          uid-to-name
+      =.  flows  (~(put by flows) name.action +>.action)
+      =.  uid-to-name
         %+  ~(put ju uid-to-name)
           [resource.action index.action]
         name.action
+      ?~  site.action
+        `state
+      =/  to-website=$-(update:store:graph website)
+        (build:pc u.site.action)
+      =/  =website
+        %-  to-website
+        (get-add-nodes:pc resource.action index.action)
+      =.  sites  (~(put by sites) name.action website)
+      :_  state
+      :*  (give:pc name.action website)
+          (serve:pc name.action website)
       ==
     ::
         %remove
@@ -90,19 +93,6 @@
         name.action
       ==
     ==
-    ::
-    ++  poke-ob-hook
-      |=  =^mark
-      ^-  card
-      :*  %pass
-          /(scot %da now.bowl)/[mark]
-          %agent
-          [our.bowl %observe-hook]
-          %poke
-          %observe-action
-          !>([%warm-static-conversion mark %pipe-website])
-      ==
-    --
   --
 ::
 ++  on-agent
@@ -122,29 +112,40 @@
     =/  =update:store:graph  !<(update:store:graph q.cage.sign)
     ?.  ?=(%add-nodes -.q.update)
       `this
-    =/  [cards=(list card) new-sites=(map name=term website)]
+    =^  cards  state
       %+  roll  (update-to-flows update)
       |=  $:  [name=term =flow]
-              [cards=(list card) new-sites=(map term website)]
+              [cards=(list card) sty=_state]
           ==
-      ^-  [(list card) (map term website)]
-      =/  web=website
-        %-  (build:pc mark.flow)
-        (get-add-nodes:pc resource.flow index.flow)
-      =/  email=website
-         ((build:pc mark.flow) update)
-      =/  new-cards=(list card)
-        %-  zing
-        :~  (give:pc name web)^~
-            ?.  serve.flow  ~
-            (serve:pc name web)
-            ?.  email.flow  ~
-            (give-email name email)^~
-        ==
-      :-  new-cards
-      (~(put by new-sites) name web)
-    :-  cards
-    this(sites (~(uni by sites) new-sites))
+      ^-  [(list card) _state]
+      =^  site-cards   sty
+        (update-site name flow update)
+      =/  email-cards
+        (update-email name flow update)
+      :_  sty
+      :(weld site-cards email-cards cards)
+    [cards this]
+    ::
+    ++  update-site
+      |=  [name=term =flow =update:store:graph]
+      ^-  (quip card _state)
+      ?~  site.flow
+        `state
+      =/  =template  (~(got by site-templates) u.site.flow)
+      =/  =website   (template (get-add-nodes:pc resource.flow index.flow))
+      :_  state(sites (~(put by sites) name website))
+      :*  (give:pc name website)
+          (serve:pc name website)
+      ==
+    ::
+    ++  update-email
+      |=  [name=term =flow =update:store:graph]
+      ^-  (list card)
+      ?~  email.flow
+        ~
+      =/  =template       (~(got by email-templates) u.email.flow)
+      =/  email=website   (template update)
+      [(give-email:pc name email)]~
     ::
     ++  update-to-flows
       |=  =update:store:graph
@@ -176,7 +177,16 @@
     --
   ==
 ::
-++  on-arvo  on-arvo:def
+++  on-arvo
+  |=  [=wire =sign-arvo]
+  ^-  (quip card _this)
+  ?.  ?=([%clay ~] wire)
+    (on-arvo:def wire sign-arvo)
+  ?>  ?=([%clay %writ *] sign-arvo)
+  =^  cards  state
+    [next-templates:pc load-templates:pc]
+  [cards this]
+::
 ++  on-watch
   |=  =path
   ^-  (quip card _this)
@@ -212,10 +222,12 @@
 ::
 |_  =bowl:gall
 +*  gra  ~(. graph bowl)
+++  our-beak
+  ^-  beak
+  [our.bowl q.byk.bowl %da now.bowl]
 ++  serve
   |=  [name=term =website]
   ^-  (list card)
-  ~&  %serve^name
   :+  :*  %pass
           /(scot %da now.bowl)/unserve
           %agent
@@ -237,7 +249,6 @@
 ++  give
   |=  [name=term =website]
   ^-  card
-  ~&  %give^name
   =-  [%give %fact - [%pipe-update !>(`update`[%built name website])]]
   :~  /updates
       /site/[name]
@@ -246,7 +257,6 @@
 ++  give-email
   |=  [name=term =website]
   ^-  card
-  ~&  %give-email^name
   =-  [%give %fact - [%pipe-update !>(`update`[%built name website])]]
   :~  /email/[name]
   ==
@@ -276,4 +286,32 @@
   %+  weld
     /graph/(scot %p entity.res)/[name.res]/node/index/kith
   (turn index (cury scot %ud))
+::
+++  next-templates
+  ^-  (list card)
+  =/  =rave:clay
+    [%next %z [%da now.bowl] /mar/pipe]
+  :~  [%pass /clay %arvo %c %warp our.bowl q.byk.bowl ~]
+      [%pass /clay %arvo %c %warp our.bowl q.byk.bowl `rave]
+  ==
+::
+++  load-templates
+  ^+  state
+  =/  site-paths   .^((list path) %ct (en-beam our-beak /mar/pipe/site))
+  =/  email-paths  .^((list path) %ct (en-beam our-beak /mar/pipe/email))
+  %_  state
+      site-templates
+    %-  ~(gas by *(map term template))
+    %+  turn  site-paths
+    |=  =path
+    =/  =mark  (cat 3 %pipe-site- (snag 3 path))
+    [mark (build mark)]
+  ::
+      email-templates
+    %-  ~(gas by *(map term template))
+    %+  turn  email-paths
+    |=  =path
+    =/  =mark  (cat 3 %pipe-email- (snag 3 path))
+    [mark (build mark)]
+  ==
 --
