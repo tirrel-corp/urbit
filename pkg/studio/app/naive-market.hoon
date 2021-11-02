@@ -96,6 +96,7 @@
             (gte 50 p.sel)
           (gte 50 ~(wyt in p.sel))
       =/  nonce=@
+        ~|  "roller may not be set up"
         (need (scry-for %roller (unit @) /nonce/(scot %p who)/[proxy]))
       :_  state
       =|  cards=(list card)
