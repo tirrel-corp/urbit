@@ -58,8 +58,6 @@
       ?<  (~(has by star-configs) who.update)
       ?>  =(%king (clan:title who.update))
       =*  c  config.update
-      =.  prv.c
-        q:(need (de:base16:mimes:html prv.c))
       ?<  (check-dupes prv.c)
       =/  =address  (address-from-prv:key:eth prv.c)
       :_  state(star-configs (~(put by star-configs) who.update c))
