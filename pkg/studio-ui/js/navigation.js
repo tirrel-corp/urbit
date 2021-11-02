@@ -1,20 +1,22 @@
 //== Top Level Navigation ======================================================
 
-const saleBtn = document.querySelector("#sale-btn");
+const landingBtn = document.querySelector("#landing-btn");
 const publishBtn = document.querySelector("#publish-btn");
+const sellBtn = document.querySelector("#sell-btn");
 
 const landingPage = document.querySelector("#landing-page");
-const salePage = document.querySelector("#sale-page");
+const sellPage = document.querySelector("#sell-page");
 const publishPage = document.querySelector("#publish-page");
 
 const buttons = {
-  sale: saleBtn,
+  landing: landingBtn,
+  sell: sellBtn,
   publish: publishBtn
 };
 
 const pages = {
   landing: landingPage,
-  sale: salePage,
+  sell: sellPage,
   publish: publishPage,
 };
 
@@ -23,7 +25,7 @@ const showPage = (key = null) => {
   Object.keys(pages).forEach((k) => {
     if (k === key) {
       if (buttons[k]) {
-        buttons[k].style = 'background-color: #EEEEEE;'
+        buttons[k].style = 'color: #000 !important;'
       }
       pages[k].style = '';
     } else {
@@ -36,8 +38,9 @@ const showPage = (key = null) => {
   });
 };
 
-saleBtn.onclick = () => { showPage('sale'); };
-publishBtn.onclick = () => { showPage('publish'); };
+landingBtn.onclick = (e) => { showPage('landing'); e.preventDefault(); };
+sellBtn.onclick = (e) => { showPage('sell'); e.preventDefault(); };
+publishBtn.onclick = (e) => { showPage('publish'); e.preventDefault(); };
 
 showPage('landing');
 
