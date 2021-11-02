@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1">
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css" />
   </head>
-  <body class="sans-serif bg-near-white near-black w-100 h-100 absolute overflow-hidden">
-    <div class="w-100 flex items-center justify-between bb b--mid-gray b pa3" style="height: 3rem;">
+  <body class="sans-serif bg-white near-black w-100 h-100 absolute overflow-hidden">
+    <div class="w-100 flex items-center justify-between b pa3" style="height: 3rem;">
       <a href="/" class="mid-gray no-underline pointer">&#8592;</a>
       <div class="flex">
         <a id="landing-btn" href="#" class="mid-gray no-underline pointer pl3 pr3">Studio</a>
@@ -16,12 +16,16 @@
       </div>
       <div></div>
     </div>
-    <div class="w-100 flex-column flex-ns flex-row-ns" style="height: calc(100% - 3rem);">
-      <div class="h-100 w-100 overflow-y-auto">
-        <div id="landing-page" class="h-100 w-100 flex justify-center items-center">
+    <div class="w-100 flex-column flex-ns flex-row-ns pa2" style="height: calc(100% - 3rem);">
+      <div class="h-100 w-100 br2 ba b--mid-gray bg-near-white" style="padding: 0.125rem 0.125rem 0.125rem 0;">
+        <div id="landing-page" class="h-100 w-100 overflow-y-auto flex justify-center items-center">
           <p class="w5-ns tc">Tirrel Studio turns your Urbit into a tool for making money.</p>
+          <!--  TODO:
+            put charts here showing readership of sites,
+            mailing list open rate, and planet sales
+          -->
         </div>
-        <div id="publish-page" class="h-100 w-100 pt3 pl4-ns pl3 pr4-ns pr3 pb3">
+        <div id="publish-page" class="h-100 w-100 overflow-y-auto pa3">
           <div class="w-100">
             <h2>Mailing Lists</h2>
             <div class="w-100">
@@ -88,7 +92,7 @@
             </div>
           </div>
         </div>
-        <div id="sell-page" class="h-100 w-100 pt3 pl4-ns pl3 pr4-ns pr3 pb3">
+        <div id="sell-page" class="h-100 w-100 pa3 overflow-y-auto">
           <div class="w-100">
             <h2>Market Settings</h2>
             <div class="w-100">
