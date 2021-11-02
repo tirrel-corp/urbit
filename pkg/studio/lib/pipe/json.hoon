@@ -25,7 +25,7 @@
     %-  pairs
     :~  resource+(enjs:resource resource.f)
         index+(index:enjs:graph-store index.f)
-        site+?~(site.f ~ [%s u.site.f])
+        site+?~(site.f ~ [%s template.u.site.f])
         email+?~(email.f ~ [%s u.email.f])
     ==
   --

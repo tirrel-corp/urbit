@@ -1,4 +1,5 @@
 /-  *pipe, store=graph-store
+/+  cram, *pipe-render
 |_  site=website
 ++  grow
   |%
@@ -70,7 +71,7 @@
       =*  post  p.post.+.u.latest-revision
       =/  title=content:store  (snag 0 contents.post)
       ?>  ?=(%text -.title)
-      ;a(class "link pa3 pt4 pb4 br2 ba b--dark-gray mb4", style "display: block;", href "./{(trip (strip-title text.title))}.html")
+      ;a(class "link pa3 pt4 pb4 br2 ba b--dark-gray mb4", style "display: block;", href "{(trip (strip-title text.title))}.html")
         ;h1(class "f2 black lh-title {q.accent-font}", style "margin-block-start: 0; margin-block-end: 0;"): {(trip text.title)}
         ;p(class "f5 gray fw3 {q.accent-font}", style "margin-block-end: 0;"): {(trip (scot %da time-sent.post))}
       ==
@@ -106,8 +107,6 @@
         ["" "sans-serif"]
       =/  title=content:store  (snag 0 contents.post)
       ?>  ?=(%text -.title)
-      =/  body=content:store  (snag 1 contents.post)
-      ?>  ?=(%text -.body)
       ;html
         ;head
           ;meta(charset "utf-8");
@@ -122,7 +121,7 @@
           ;div(class "pa4 pt3 flex flex-column w-90 near-black", style "max-width: 44rem;")
             ;h1(class "f2 lh-title {q.accent-font}", style "margin-block-end: 0;"): {(trip text.title)}
             ;p(class "f5 gray {q.accent-font} fw3"): {(trip (scot %da time-sent.post))}
-            ;p(class "f4 lh-copy {q.body-font} fw3", style "white-space: pre-wrap;"): {(trip text.body)}
+            ;*  (contents-to-marl (slag 1 contents.post))
           ==
         ==
       ==

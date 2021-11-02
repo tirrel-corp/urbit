@@ -3,7 +3,7 @@
 +$  flow
   $:  =resource
       =index
-      site=(unit term)
+      site=(unit [template=term =binding:eyre])
       email=(unit term)
   ==
 +$  action

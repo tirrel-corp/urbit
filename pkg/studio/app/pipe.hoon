@@ -2,7 +2,7 @@
 ::
 ::
 /-  *pipe
-/+  default-agent, dbug, verb, graph, pipe-json
+/+  default-agent, dbug, verb, graph, pipe-json, server
 |%
 +$  card  card:agent:gall
 +$  template  $-(update:store:graph website)
@@ -11,6 +11,7 @@
       flows=(map name=term flow)
       sites=(map name=term website)
       uid-to-name=(jug uid name=term)
+      host-to-name=(map @t name=term)
       site-templates=(map term template)
       email-templates=(map term template)
   ==
@@ -54,6 +55,12 @@
     =^  cards  state
       (pipe-action !<(action vase))
     [cards this]
+  ::
+      %handle-http-request
+    =+  !<([eyre-id=@ta req=inbound-request:eyre] vase)
+    :_  this
+    %+  give-simple-payload:app:server  eyre-id
+    (handle-http-request req)
   ==
   ::
   ++  pipe-action
@@ -70,19 +77,27 @@
       ?~  site.action
         `state
       =/  to-website=$-(update:store:graph website)
-        (build:pc u.site.action)
+        (build:pc template.u.site.action)
       =/  =website
         %-  to-website
         (get-add-nodes:pc resource.action index.action)
-      =.  sites  (~(put by sites) name.action website)
+      =.  sites        (~(put by sites) name.action website)
+      =?  host-to-name  ?=(^ site.binding.u.site.action)
+        (~(put by host-to-name) u.site.binding.u.site.action name.action)
       :_  state
       :*  (give:pc name.action website)
-          (serve:pc name.action website)
+          (serve:pc name.action binding.u.site.action)
       ==
     ::
         %remove
       =/  =flow  (~(got by flows) name.action)
-      :-  ~
+      =^  cards  host-to-name
+        ?~  site.flow
+          [~ host-to-name]
+        :-  [%pass /eyre %arvo %e %disconnect binding.u.site.flow]~
+        ?~  site.binding.u.site.flow  host-to-name
+        (~(del by host-to-name) site.binding.u.site.flow)
+      :-  cards
       %_    state
         flows  (~(del by flows) name.action)
         sites  (~(del by sites) name.action)
@@ -93,6 +108,51 @@
         name.action
       ==
     ==
+  ::
+  ++  handle-http-request
+    |=  req=inbound-request:eyre
+    ^-  simple-payload:http
+    =/  req-line=request-line:server
+      (parse-request-line:server url.request.req)
+    =/  host=(unit @t)
+      (~(get by (~(gas by *(map @t @t)) header-list.request.req)) 'host')
+    ::
+    ::  figure out which flow and path this request is for
+    ~&  req+site.req-line
+    =/  flow-req=(unit [name=term =path])
+      ?~  host
+        ?~  site.req-line  ~
+        ?~  t.site.req-line
+          `[i.site.req-line /index/html]
+        ?:  ?=([%$ ~] t.site.req-line)
+          `[i.site.req-line /index/html]
+        `[i.site.req-line (snoc t.site.req-line %html)]
+      =/  maybe-name  (~(get by host-to-name) u.host)
+      ?~  maybe-name
+        ?~  site.req-line  ~
+        ?~  t.site.req-line
+          `[i.site.req-line /index/html]
+        ?:  ?=([%$ ~] t.site.req-line)
+          `[i.site.req-line /index/html]
+        `[i.site.req-line (snoc t.site.req-line %html)]
+      ?~  site.req-line
+        `[u.maybe-name /index/html]
+      ?:  ?=([%$ ~] site.req-line)
+        `[u.maybe-name /index/html]
+      `[u.maybe-name (snoc site.req-line %html)]
+    ~&  flow+flow-req
+    ::
+    ?~  flow-req
+      not-found:gen:server
+    ::
+    =/  web=(unit website)
+      (~(get by sites) name.u.flow-req)
+    =/  page=(unit mime)
+      ?~  web  ~
+      (~(get by u.web) path.u.flow-req)
+    ?~  page
+      not-found:gen:server
+    [[200 [['content-type' 'text/html'] ~]] `q.u.page]
   --
 ::
 ++  on-agent
@@ -131,12 +191,10 @@
       ^-  (quip card _state)
       ?~  site.flow
         `state
-      =/  =template  (~(got by site-templates) u.site.flow)
+      =/  =template  (~(got by site-templates) template.u.site.flow)
       =/  =website   (template (get-add-nodes:pc resource.flow index.flow))
-      :_  state(sites (~(put by sites) name website))
-      :*  (give:pc name website)
-          (serve:pc name website)
-      ==
+      :-  [(give:pc name website)]~
+      state(sites (~(put by sites) name website))
     ::
     ++  update-email
       |=  [name=term =flow =update:store:graph]
@@ -180,12 +238,16 @@
 ++  on-arvo
   |=  [=wire =sign-arvo]
   ^-  (quip card _this)
-  ?.  ?=([%clay ~] wire)
-    (on-arvo:def wire sign-arvo)
-  ?>  ?=([%clay %writ *] sign-arvo)
-  =^  cards  state
-    [next-templates:pc load-templates:pc]
-  [cards this]
+  ?+  wire  (on-arvo:def wire sign-arvo)
+      [%clay ~]
+    ?>  ?=([%clay %writ *] sign-arvo)
+    =^  cards  state
+      [next-templates:pc load-templates:pc]
+    [cards this]
+  ::
+      [%eyre ~]
+    `this
+  ==
 ::
 ++  on-watch
   |=  =path
@@ -201,6 +263,8 @@
     [%give %fact ~ %pipe-update !>(update)]~
   ::
       [%email @ ~]  `this
+  ::
+      [%http-response *]  `this
   ==
 ::
 ++  on-peek
@@ -225,26 +289,19 @@
 ++  our-beak
   ^-  beak
   [our.bowl q.byk.bowl %da now.bowl]
+::
 ++  serve
-  |=  [name=term =website]
+  |=  [name=term =binding:eyre]
   ^-  (list card)
-  :+  :*  %pass
-          /(scot %da now.bowl)/unserve
-          %agent
-          [our.bowl %file-server]
-          %poke
-          %file-server-action
-          !>([%unserve-dir /[name]])
-      ==
-    :*  %pass
-        /(scot %da now.bowl)/serve
-        %agent
-        [our.bowl %file-server]
-        %poke
-        %file-server-action
-        !>([%serve-glob /[name] website %.y])
-    ==
-  ~
+  =/  cards=(list card)
+    [%pass /eyre %arvo %e %connect binding dap.bowl]~
+  =/  flo  (~(get by flows) name)
+  ?~  flo
+    cards
+  ?~  site.u.flo
+    cards
+  :_  cards
+  [%pass /eyre %arvo %e %disconnect binding.u.site.u.flo]
 ::
 ++  give
   |=  [name=term =website]
