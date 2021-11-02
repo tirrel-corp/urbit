@@ -5,15 +5,18 @@ const addStarPrvInp  = document.querySelector("#add-star-prv-input");
 const addStarProxyInp = document.querySelector("#add-star-proxy-input");
 
 const delStarInp = document.querySelector("#del-star-config-input");
-const setPlanetPriceInp = document.querySelector("#planet-price-input");
-const setReferralsInp = document.querySelector("#referral-input");
-const spawnShipsInp = document.querySelector("#spawn-ships-input");
+const planetPriceInp = document.querySelector("#planet-price-input");
+
+const spawnShipsFromInp = document.querySelector("#spawn-ships-from-input");
+const spawnShipsNumInp = document.querySelector("#spawn-ships-num-input");
+//const setReferralsInp = document.querySelector("#referral-input");
 
 const addStarBtn = document.querySelector("#add-star-config-btn");
 const delStarBtn = document.querySelector("#del-star-config-btn");
-const setPlanetPriceBtn = document.querySelector("#planet-price-btn");
-const setReferralsBtn = document.querySelector("#referral-btn");
+const planetPriceBtn = document.querySelector("#planet-price-btn");
 const spawnShipsBtn = document.querySelector("#spawn-ships-btn");
+//const setReferralsBtn = document.querySelector("#referral-btn");
+
 
 addStarBtn.onclick = () => {
   naiveMarketPoke({
@@ -27,21 +30,57 @@ addStarBtn.onclick = () => {
   });
 }
 
+let configs = [];
+
+naiveMarketScry('/star-configs').then((res) => {
+  console.log('star-configs', res);
+  if (res !== null) {
+    configs = res;
+
+    configs.forEach((c) => {
+      console.log(configs[c]);
+      let option = document.createElement('option');
+      option.value = c;
+      option.textContent = c;
+
+      delStarInp.appendChild(option);
+
+      let option2 = document.createElement('option');
+      option2.value = c;
+      option2.textContent = c;
+
+      spawnShipsFromInp.appendChild(option2);
+    });
+  }
+});
+
 delStarBtn.onclick = () => {
-  naiveMarketPoke();
+  naiveMarketPoke({
+    'del-star-config': delStarInp.value
+  });
 }
 
-setPlanetPriceBtn.onclick = () => {
-  naiveMarketPoke();
-}
-
-setReferralsBtn.onclick = () => {
-  naiveMarketPoke();
+planetPriceBtn.onclick = () => {
+  naiveMarketPoke({
+    'set-price': {
+      amount: parseInt(planetPriceInp.value, 10),
+      currency: 'USD'
+    }
+  });
 }
 
 spawnShipsBtn.onclick = () => {
-  naiveMarketPoke();
+  naiveMarketPoke({
+    'spawn-ships': {
+      ship: spawnShipsFromInp.value,
+      sel: parseInt(spawnShipsNumInp.value, 10)
+    }
+  });
 }
+
+/*setReferralsBtn.onclick = () => {
+  naiveMarketPoke();
+}*/
 
 //== Naive NMI Settings =====================================================
 

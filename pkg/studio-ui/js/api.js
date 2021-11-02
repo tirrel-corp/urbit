@@ -40,6 +40,11 @@ const naiveNMIScry = (path) => {
   return api.scry({ app: 'naive-nmi', path });
 };
 
+const naiveMarketScry = (path) => {
+  return api.scry({ app: 'naive-market', path });
+};
+
+
 const mailerPoke = (json) => {
   return api.poke({
     app: 'mailer',
