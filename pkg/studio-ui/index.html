@@ -21,22 +21,22 @@
         <div id="landing-page" class="h-100 w-100 flex justify-center items-center">
           <p class="w5-ns tc">Tirrel Studio turns your Urbit into a tool for making money.</p>
         </div>
-        <div id="publish-page" class="h-100 w-100 pa3">
+        <div id="publish-page" class="h-100 w-100 pt3 pl4-ns pl3 pr4-ns pr3 pb3">
           <div class="w-100">
             <h2>Mailing Lists</h2>
             <div class="w-100">
-              <p class="pt3 b">Credentials</p>
+              <p class="pt4 b">Credentials</p>
               <div class="w-100 flex pb2 pt2">
                 <p class="w5-ns mr2">Sendgrid API Key</p>
-                <input id="sendgrid-api-input" class="w5-ns pa2 mr2 ba b--near-black input-reset" placeholder="SG.asdf" />
+                <input id="sendgrid-api-input" class="w5-ns pa2 ba b--near-black input-reset" placeholder="SG.asdf" />
               </div>
               <div class="w-100 flex pb2 pt2">
                 <p class="w5-ns mr2">Sender Email Address</p>
-                <input id="sendgrid-email-input" class="w5-ns pa2 mr2 ba b--near-black input-reset" placeholder="me@urbit.org" />
+                <input id="sendgrid-email-input" class="w5-ns pa2 ba b--near-black input-reset" placeholder="me@urbit.org" />
               </div>
               <div class="w-100 flex pb2 pt2">
                 <p class="w5-ns mr2">Ship URL</p>
-                <input id="sendgrid-url-input" class="w5-ns pa2 mr2 ba b--near-black input-reset" placeholder="https://zod.me" />
+                <input id="sendgrid-url-input" class="w5-ns pa2 ba b--near-black input-reset" placeholder="https://zod.me" />
               </div>
               <div class="w-100 pt2">
                 <button id="sendgrid-creds-button" class="w5-ns pa3 bg-near-black white bn hover-bg-mid-gray button-reset">Set Credentials</button>
@@ -46,22 +46,22 @@
           <div class="w-100">
             <h2 class="mt5">Static Sites</h2>
             <div class="w-100">
-              <p class="pt3 b">Add Flow</p>
+              <p class="pt4 b">Add Flow</p>
               <div class="w-100 flex pb2 pt2">
                 <p class="w5-ns mr2">Name</p>
-                <input id="flow-name-input" class="w5-ns pa2 mr2 ba b--near-black input-reset" placeholder="blog" />
+                <input id="flow-name-input" class="w5-ns pa2 ba b--near-black input-reset" placeholder="blog" />
               </div>
               <div class="w-100 flex pb2 pt2">
                 <p class="w5-ns mr2">Source Graph</p>
-                <input id="flow-res-input" class="w5-ns pa2 mr2 ba b--near-black input-reset" placeholder="~bitbet-bolbel/blog" />
+                <input id="flow-res-input" class="w5-ns pa2 ba b--near-black input-reset" placeholder="~bitbet-bolbel/blog" />
               </div>
               <div class="w-100 flex pb2 pt2">
                 <p class="w5-ns mr2">Web URL To Serve To</p>
-                <input id="flow-index-input" class="w5-ns pa2 mr2 ba b--near-black input-reset" placeholder="blog" />
+                <input id="flow-index-input" class="w5-ns pa2 ba b--near-black input-reset" placeholder="blog" />
               </div>
               <div class="w-100 flex pb2 pt2">
                 <p class="w5-ns mr2">HTML Renderer Mark</p>
-                <input id="flow-mark-input" class="w5-ns pa2 mr2 ba b--near-black input-reset" placeholder="pipe-template-blog-index" />
+                <input id="flow-mark-input" class="w5-ns pa2 ba b--near-black input-reset" placeholder="pipe-template-blog-index" />
               </div>
               <div class="w-100 flex pb2 pt2 items-center">
                 <div class="w5-ns mr2 flex items-center">
@@ -78,7 +78,7 @@
               </div>
             </div>
             <div class="w-100 mt5 pb3">
-              <p class="pt3 b">Remove Flow</p>
+              <p class="pt4 b">Remove Flow</p>
               <div class="w-100 flex pb2 pt2">
                 <select id="flow-remove-name-input" class="w5-ns pa2 mr2 ba b--near-black input-reset">
                   <option value="" disabled selected>Select your option</option>
@@ -88,26 +88,31 @@
             </div>
           </div>
         </div>
-        <div id="sell-page" class="h-100 w-100 pa3">
-          <h2>Planet Site Settings</h2>
+        <div id="sell-page" class="h-100 w-100 pt3 pl4-ns pl3 pr4-ns pr3 pb3">
           <div class="w-100">
-            <p class="pt3 b">Set Site's Domain Name</p>
-            <div class="w-100 flex pb2 pt2">
-              <p class="w5-ns mr2">Domain Name</p>
-              <input id="domain-name-input" class="w5-ns pa2 mr2 ba b--near-black input-reset" placeholder="planetsale.com" />
-            </div>
-            <div class="w-100 pt2">
-              <button id="domain-name-button" class="w5-ns pa3 bg-near-black white bn hover-bg-mid-gray button-reset">Set Domain Name</button>
-            </div>
+            <h2>Market Settings</h2>
           </div>
           <div class="w-100">
-            <p class="pt3 b">Set Payment Gateway API Key</p>
-            <div class="w-100 flex pb2 pt2">
-              <p class="w5-ns mr2">API Key</p>
-              <input id="sale-api-input" class="w5-ns pa2 mr2 ba b--near-black input-reset" placeholder="2F822Rw39fx762MaV7Yy86jXGTC7sCDy" />
+            <h2 class="mt5">Market Site Settings</h2>
+            <div class="w-100">
+              <p class="pt4 b">Set Site's Domain Name</p>
+              <div class="w-100 flex pb2 pt2">
+                <p class="w5-ns mr2">Domain Name</p>
+                <input id="domain-name-input" class="w5-ns pa2 ba b--near-black input-reset" placeholder="planetsale.com" />
+              </div>
+              <div class="w-100 pt2">
+                <button id="domain-name-button" class="w5-ns pa3 bg-near-black white bn hover-bg-mid-gray button-reset">Set Domain Name</button>
+              </div>
             </div>
-            <div class="w-100 pt2">
-              <button id="sale-api-button" class="w5-ns pa3 bg-near-black white bn hover-bg-mid-gray button-reset">Set API Key</button>
+            <div class="w-100">
+              <p class="pt4 b">Set Payment Gateway API Key</p>
+              <div class="w-100 flex pb2 pt2">
+                <p class="w5-ns mr2">API Key</p>
+                <input id="sale-api-input" class="w5-ns pa2 ba b--near-black input-reset" placeholder="2F822Rw39fx762MaV7Yy86jXGTC7sCDy" />
+              </div>
+              <div class="w-100 pt2">
+                <button id="sale-api-button" class="w5-ns pa3 bg-near-black white bn hover-bg-mid-gray button-reset">Set API Key</button>
+              </div>
             </div>
           </div>
         </div>
