@@ -38,9 +38,15 @@ const showPage = (key = null) => {
   });
 };
 
-landingBtn.onclick = (e) => { showPage('landing'); e.preventDefault(); };
-sellBtn.onclick = (e) => { showPage('sell'); e.preventDefault(); };
-publishBtn.onclick = (e) => { showPage('publish'); e.preventDefault(); };
+landingBtn.onclick = (e) => { showPage('landing'); };
+sellBtn.onclick = (e) => { showPage('sell'); };
+publishBtn.onclick = (e) => { showPage('publish'); };
 
-showPage('landing');
+if (location.hash === '#sell') {
+  showPage('sell');
+} else if (location.hash === '#publish') {
+  showPage('publish');
+} else {
+  showPage('landing');
+}
 
