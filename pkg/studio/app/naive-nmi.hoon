@@ -141,8 +141,6 @@
       |=  [hed=header-list:http req=request-line:srv]
       ^-  simple-payload:http
       ::  TODO: make this generic
-      =?  site.req  ?=([%'market' *] site.req)
-        t.site.req
       ?~  ext.req
         $(ext.req `%html, site.req [%index ~])
       ~&  [site.req ext.req]

@@ -1,15 +1,15 @@
 let startPayment = async (who, sel) => {
-  let data = JSON.stringify({
+  let data = {
     "initiate-sale": {
       who: who,
       sel: sel
     }
-  });
+  };
 
-  const res = await fetch(`/market`, {
+  const res = await fetch(`/`, {
     method: 'POST',
     headers: { 'Content-type': 'text/json' },
-    body: data
+    body: JSON.stringify(data)
   });
 
   return res.json();
@@ -17,7 +17,7 @@ let startPayment = async (who, sel) => {
 
 let pollForStepOneResponse = (file, stepTwo = () => {}) => {
   setTimeout(() => {
-    fetch(`/market/${file}.json`, {
+    fetch(`/${file}.json`, {
       method: 'GET',
       mode: 'cors',
       headers: {
@@ -53,14 +53,14 @@ let stepTwo = (tokenId) => {
 };
 
 let stepThree = (tokenId) => {
-  let data = `{
-    "complete-sale": "${tokenId}"
-  }`;
+  let data = {
+    "complete-sale": tokenId
+  };
 
-  fetch(`/market`, {
+  fetch(`/`, {
     method: 'POST',
     headers: { 'Content-type': 'text/json' },
-    body: data
+    body: JSON.stringify(data)
   }).then((res) => {
     if (res.ok) {
       return res.json();
@@ -72,12 +72,12 @@ let stepThree = (tokenId) => {
     status.innerText = "Payment Successful!"
   })
   .catch((error) => {
-    window.location.replace("http://urbit.studio/market");
+    window.location.replace("/");
   });
 };
 
 if (window.location.protocol !== 'https:') {
-  //location.href = location.href.replace("http://", "https://");
+  location.href = location.href.replace("http://", "https://");
 }
 
 let params = (new URL(document.location)).searchParams;
