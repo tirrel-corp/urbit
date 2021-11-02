@@ -269,6 +269,11 @@
       [%x %inventory @ ~]
     =/  who=ship  (slav %p i.t.t.path)
     ``noun+!>(`(set ship)`(~(get ju for-sale) who))
+  ::
+      [%x %star-configs ~]
+    :^  ~  ~  %json
+    !>  ^-  json
+    a+(turn ~(tap in ~(key by star-configs)) |=(=ship s+(scot %p ship)))
   ==
 ::
 ++  on-agent
