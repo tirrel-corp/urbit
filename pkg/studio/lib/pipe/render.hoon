@@ -1,6 +1,38 @@
 /-  *post
 /+  cram
 |%
+++  snip
+  |=  contents=(list content)
+  ^-  (unit @t)
+  ?~  contents
+    ~
+  ?~  t.contents
+    ~
+  =/  first=(unit @t)
+    %+  roll  ;;((list content) t.contents)
+    |=  [c=content out=(unit @t)]
+    ?:  ?=(%text -.c)
+      `text.c
+    out
+  ?~  first  ~
+  ?:  (lte (met 3 u.first) 180)
+    `u.first
+  `(cat 3 (end [3 180] u.first) '...')
+::
+++  print-date
+  |=  d=@da
+  ^-  @t
+  =/  date   (yore d)
+  =/  month  (end [3 3] (crip (snag (dec m.date) mon:yu:chrono:userlib)))
+  %:  rap  3
+    month
+    ' '
+    (scot %ud d.t.date)
+    ', '
+    (rsh [3 2] (scot %ui y.date))
+    ~
+  ==
+::
 ::
 :: cord escape with hep instead of dot
 ++  escape
