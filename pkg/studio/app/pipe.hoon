@@ -2,7 +2,7 @@
 ::
 ::
 /-  *pipe
-/+  default-agent, dbug, verb, graph, pipe-json, server
+/+  default-agent, dbug, verb, graph, pipe-json, server, *pipe-templates
 |%
 +$  card  card:agent:gall
 +$  template  $-(update:store:graph website)
@@ -12,8 +12,6 @@
       sites=(map name=term website)
       uid-to-name=(jug uid name=term)
       host-to-name=(map @t name=term)
-      site-templates=(map term template)
-      email-templates=(map term template)
   ==
 --
 ::
@@ -31,10 +29,8 @@
 ::
 ++  on-init
   ^-  (quip card _this)
-  :_  this(state load-templates:pc)
-  :*  [%pass /graph %agent [our.bowl %graph-store] %watch /updates]
-      next-templates:pc
-  ==
+  :_  this(state *state-0)
+  [%pass /graph %agent [our.bowl %graph-store] %watch /updates]~
 ::
 ++  on-save  !>(state)
 ++  on-load
@@ -42,8 +38,7 @@
   ^-  (quip card _this)
 ::  `this(state *state-0)
   =/  old  !<(state-0 old-vase)
-  :-  next-templates:pc
-  this(state old)
+  `this(state old)
 ::
 ++  on-poke
   |=  [=mark =vase]
@@ -76,11 +71,10 @@
         name.action
       ?~  site.action
         `state
-      =/  to-website=$-(update:store:graph website)
-        (build:pc template.u.site.action)
-      =/  =website
-        %-  to-website
-        (get-add-nodes:pc resource.action index.action)
+      =/  =site-template
+        ~|  "no such template: {<template.u.site.action>}"
+        (~(got by site-templates) template.u.site.action)
+      =/  =website   (site-template (get-inputs:pc name.action +>.action))
       =.  sites        (~(put by sites) name.action website)
       =?  host-to-name  ?=(^ site.binding.u.site.action)
         (~(put by host-to-name) u.site.binding.u.site.action name.action)
@@ -114,33 +108,26 @@
     ^-  simple-payload:http
     =/  req-line=request-line:server
       (parse-request-line:server url.request.req)
+    ~&  handle+req-line
     =/  host=(unit @t)
       (~(get by (~(gas by *(map @t @t)) header-list.request.req)) 'host')
     ::
     ::  figure out which flow and path this request is for
-    ~&  req+site.req-line
     =/  flow-req=(unit [name=term =path])
       ?~  host
         ?~  site.req-line  ~
-        ?~  t.site.req-line
-          `[i.site.req-line /index/html]
         ?:  ?=([%$ ~] t.site.req-line)
-          `[i.site.req-line /index/html]
-        `[i.site.req-line (snoc t.site.req-line %html)]
+          `[i.site.req-line /]
+        `[i.site.req-line t.site.req-line]
       =/  maybe-name  (~(get by host-to-name) u.host)
       ?~  maybe-name
         ?~  site.req-line  ~
-        ?~  t.site.req-line
-          `[i.site.req-line /index/html]
         ?:  ?=([%$ ~] t.site.req-line)
-          `[i.site.req-line /index/html]
-        `[i.site.req-line (snoc t.site.req-line %html)]
-      ?~  site.req-line
-        `[u.maybe-name /index/html]
+          `[i.site.req-line /]
+        `[i.site.req-line t.site.req-line]
       ?:  ?=([%$ ~] site.req-line)
-        `[u.maybe-name /index/html]
-      `[u.maybe-name (snoc site.req-line %html)]
-    ~&  flow+flow-req
+        `[u.maybe-name /]
+      `[u.maybe-name site.req-line]
     ::
     ?~  flow-req
       not-found:gen:server
@@ -191,8 +178,8 @@
       ^-  (quip card _state)
       ?~  site.flow
         `state
-      =/  =template  (~(got by site-templates) template.u.site.flow)
-      =/  =website   (template (get-add-nodes:pc resource.flow index.flow))
+      =/  =site-template  (~(got by site-templates) template.u.site.flow)
+      =/  =website   (site-template (get-inputs:pc name flow))
       :-  [(give:pc name website)]~
       state(sites (~(put by sites) name website))
     ::
@@ -201,8 +188,8 @@
       ^-  (list card)
       ?~  email.flow
         ~
-      =/  =template       (~(got by email-templates) u.email.flow)
-      =/  email=website   (template update)
+      =/  =email-template  (~(got by email-templates) u.email.flow)
+      =/  email=website    (email-template (get-inputs name flow)) :: XX
       [(give-email:pc name email)]~
     ::
     ++  update-to-flows
@@ -239,14 +226,7 @@
   |=  [=wire =sign-arvo]
   ^-  (quip card _this)
   ?+  wire  (on-arvo:def wire sign-arvo)
-      [%clay ~]
-    ?>  ?=([%clay %writ *] sign-arvo)
-    =^  cards  state
-      [next-templates:pc load-templates:pc]
-    [cards this]
-  ::
-      [%eyre ~]
-    `this
+    [%eyre ~]  `this
   ==
 ::
 ++  on-watch
@@ -318,57 +298,42 @@
   :~  /email/[name]
   ==
 ::
-++  build
-  |=  =^mark
-  ^-  $-(update:store:graph website)
-  =/  convert=$-(website $-(update:store:graph website))
-    .^  $-(website $-(update:store:graph website))
-          %cf
-          (scot %p our.bowl)
-          q.byk.bowl
-          (scot %da now.bowl)
-          mark
-          %pipe-website
-          ~
-      ==
-  (convert *website)
+++  orm  ((on atom node:store:graph) gth)
 ::
-++  get-add-nodes
-  |=  [res=resource =index]
-  ^-  update:store:graph
-  ?~  index
-    %+  scry-for:gra  ,=update:store:graph
+++  get-posts
+  |=  res=resource
+  ^-  (list [initial-date=@da latest-post=post:store:graph])
+  =/  =update:store:graph
+    %+  scry-for:gra  update:store:graph
     /graph/(scot %p entity.res)/[name.res]/node/children/kith/'~'/'~'
-  %+  scry-for:gra  ,=update:store:graph
-  %+  weld
-    /graph/(scot %p entity.res)/[name.res]/node/index/kith
-  (turn index (cury scot %ud))
+  ?>  ?=(%add-nodes -.q.update)
+  %+  sort
+    %+  turn  ~(tap by nodes.q.update)
+    |=  [=index =node:store:graph]
+    ?>  ?=(%graph -.children.node)
+    =/  arc=node:store:graph  (got:orm p.children.node 1)
+    ?>  ?=(%graph -.children.arc)
+    =/  latest=(unit [@ node:store:graph])  (pry:orm p.children.arc)
+    =/  first=(unit [@ node:store:graph])   (ram:orm p.children.arc)
+    ?~  latest  !!
+    ?~  first   !!
+    ?>  ?=(%& -.post.+.u.latest)
+    ?>  ?=(%& -.post.+.u.first)
+    :*  time-sent.p.post.+.u.first
+        p.post.+.u.latest
+    ==
+  |=  $:  a=[t=@da post:store:graph]
+          b=[t=@da post:store:graph]
+      ==
+  (gth t.a t.b)
 ::
-++  next-templates
-  ^-  (list card)
-  =/  =rave:clay
-    [%next %z [%da now.bowl] /mar/pipe]
-  :~  [%pass /clay %arvo %c %warp our.bowl q.byk.bowl ~]
-      [%pass /clay %arvo %c %warp our.bowl q.byk.bowl `rave]
+++  get-inputs
+  |=  [name=term =flow]
+  ^-  site-inputs
+  :*  name
+      title.flow
+      binding:(need site.flow)
+      (get-posts resource.flow)
   ==
 ::
-++  load-templates
-  ^+  state
-  =/  site-paths   .^((list path) %ct (en-beam our-beak /mar/pipe/site))
-  =/  email-paths  .^((list path) %ct (en-beam our-beak /mar/pipe/email))
-  %_  state
-      site-templates
-    %-  ~(gas by *(map term template))
-    %+  turn  site-paths
-    |=  =path
-    =/  =mark  (cat 3 %pipe-site- (snag 3 path))
-    [mark (build mark)]
-  ::
-      email-templates
-    %-  ~(gas by *(map term template))
-    %+  turn  email-paths
-    |=  =path
-    =/  =mark  (cat 3 %pipe-email- (snag 3 path))
-    [mark (build mark)]
-  ==
 --

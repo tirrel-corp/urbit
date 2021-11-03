@@ -1,16 +1,46 @@
 /-  *post
 /+  cram
 |%
+::
+:: cord escape with hep instead of dot
+++  escape
+  |=  a=@t
+  ^-  @ta
+  %+  rap  3
+  |-  ^-  (list @)
+  ?:  =(`@`0 a)
+    ~
+  =+  b=(teff a)
+  =+  c=(taft (end [3 b] a))
+  =+  d=$(a (rsh [3 b] a))
+  ?:  ?|  &((gte c 'a') (lte c 'z'))
+          &((gte c '0') (lte c '9'))
+          =(`@`'-' c)
+      ==
+    [c d]
+  ?+  c
+    :-  '~'
+    =+  e=(met 2 c)
+    |-  ^-  tape
+    ?:  =(0 e)
+      ['.' d]
+    =.  e  (dec e)
+    =+  f=(rsh [2 e] c)
+    [(add ?:((lte f 9) 48 87) f) $(c (end [2 e] c))]
+  ::
+    %' '  ['-' d]
+    %'.'  ['-' d]
+::    %'~'  ['~' '~' d]
+  ==
+::
 ++  strip-title
   |=  title=cord
-  `@ta`(crip (en-urlt:html (trip (wood (crip (cass (trip title)))))))
+  `@ta`(crip (en-urlt:html (trip (escape (crip (cass (trip title)))))))
 ::
 ++  title-to-url
   |=  title=cord
   ^-  path
-  :+  (strip-title title)
-    %html
-  ~
+  [(strip-title title) ~]
 ::
 ++  post-to-email
   |=  [=index =post]
