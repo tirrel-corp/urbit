@@ -106,28 +106,20 @@
   ++  handle-http-request
     |=  req=inbound-request:eyre
     ^-  simple-payload:http
+    |^
     =/  req-line=request-line:server
       (parse-request-line:server url.request.req)
-    ~&  handle+req-line
     =/  host=(unit @t)
       (~(get by (~(gas by *(map @t @t)) header-list.request.req)) 'host')
     ::
-    ::  figure out which flow and path this request is for
     =/  flow-req=(unit [name=term =path])
-      ?~  host
-        ?~  site.req-line  ~
-        ?:  ?=([%$ ~] t.site.req-line)
-          `[i.site.req-line /]
-        `[i.site.req-line t.site.req-line]
-      =/  maybe-name  (~(get by host-to-name) u.host)
-      ?~  maybe-name
-        ?~  site.req-line  ~
-        ?:  ?=([%$ ~] t.site.req-line)
-          `[i.site.req-line /]
-        `[i.site.req-line t.site.req-line]
-      ?:  ?=([%$ ~] site.req-line)
-        `[u.maybe-name /]
-      `[u.maybe-name site.req-line]
+      %-  ~(rep by flows)
+      |=  [[name=term =flow] out=(unit [term path])]
+      ?~  site.flow  ~
+      =/  suffix=(unit path)
+        (get-suffix path.binding.u.site.flow site.req-line)
+      ?~  suffix  out
+      `[name u.suffix]
     ::
     ?~  flow-req
       not-found:gen:server
@@ -140,6 +132,20 @@
     ?~  page
       not-found:gen:server
     [[200 [['content-type' 'text/html'] ~]] `q.u.page]
+    ::
+    ++  get-suffix
+      |=  [a=path b=path]
+      ^-  (unit path)
+      ?:  (gth (lent a) (lent b))  ~
+      |-
+      ?~  a  `b
+      ?~  b  ~
+      ?.  =(i.a i.b)  ~
+      %=  $
+        a  t.a
+        b  t.b
+      ==
+    --
   --
 ::
 ++  on-agent
