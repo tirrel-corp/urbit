@@ -1,14 +1,16 @@
 /-  *pipe
-/+  pipe-templates-site-index
+/+  pipe-templates-site-light,
+    pipe-templates-site-dark
 |%
 ++  site-templates
   ^-  (map term site-template)
   %-  ~(gas by *(map term site-template))
-  :~  [%index pipe-templates-site-index]
+  :~  [%light pipe-templates-site-light]
+      [%dark pipe-templates-site-dark]
   ==
 ++  email-templates  :: XX
   ^-  (map term site-template)
   %-  ~(gas by *(map term site-template))
-  :~  [%index pipe-templates-site-index]
+  :~  [%index pipe-templates-site-dark]
   ==
 --
