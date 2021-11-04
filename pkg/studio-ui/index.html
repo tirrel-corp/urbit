@@ -18,14 +18,14 @@
     </div>
     <div class="w-100 flex-column flex-ns flex-row-ns pa2-ns" style="height: calc(100% - 3rem);">
       <div class="h-100 w-100 br2-ns bt ba-ns b--mid-gray bg-near-white" style="@media (screen and (min-width: 30em)) { padding: 0.125rem 0.125rem 0.125rem 0; }">
-        <div id="landing-page" class="h-100 w-100 overflow-y-auto flex justify-center items-center">
+        <div id="landing-page" class="h-100 w-100 overflow-y-auto flex justify-center items-center" style="display:none;">
           <p class="w5-ns tc">Tirrel Studio turns your Urbit into a tool for making money.</p>
           <!--  TODO:
             put charts here showing readership of sites,
             mailing list open rate, and planet sales
           -->
         </div>
-        <div id="publish-page" class="h-100 w-100 overflow-y-auto pa3">
+        <div id="publish-page" class="h-100 w-100 overflow-y-auto pa3" style="display:none;">
           <div class="w-100">
             <h2>Mailing Lists</h2>
             <div class="w-100">
@@ -92,7 +92,7 @@
             </div>
           </div>
         </div>
-        <div id="sell-page" class="h-100 w-100 f6">
+        <div id="sell-page" class="h-100 w-100 f6" style="display:none;">
           <div class="w-100 flex items-center b pa3 bb b--mid-gray" style="height: 2rem;">
             <div class="flex tc">
               <a id="sell-status-btn" href="#sell-status" class="mid-gray no-underline pointer pr3">Status</a>
@@ -198,6 +198,7 @@
     <script type="text/javascript" src="./vendor/urbit-http-api.js"></script>
     <script type="text/javascript" src="./js/navigation.js"></script>
     <script type="text/javascript" src="./js/api.js"></script>
+    <script type="text/javascript" src="./js/store.js"></script>
     <script type="text/javascript" src="./js/publisher.js"></script>
     <script type="text/javascript" src="./js/seller.js"></script>
   </body>

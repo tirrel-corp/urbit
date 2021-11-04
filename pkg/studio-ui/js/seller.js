@@ -1,3 +1,66 @@
+//== Inner Navigation
+
+const sellStatusPage = document.querySelector("#sell-status-inner-page");
+const sellSettingsPage = document.querySelector("#sell-settings-inner-page");
+
+const sellStatusBtn = document.querySelector("#sell-status-btn");
+const sellSettingsBtn = document.querySelector("#sell-settings-btn");
+
+
+const innerButtons = {
+  sell: {
+    status: sellStatusBtn,
+    settings: sellSettingsBtn
+  }
+};
+
+const innerPages = {
+  sell: {
+    status: sellStatusPage,
+    settings: sellSettingsPage
+  }
+};
+
+const showInnerPage = (outerKey = null, key = null) => {
+  if (!outerKey || !key) { return; }
+  Object.keys(innerPages[outerKey]).forEach((k) => {
+    if (k === key) {
+
+      if (innerButtons[outerKey][k]) {
+        innerButtons[outerKey][k].style = 'color: #000 !important;'
+      }
+
+      innerPages[outerKey][k].style = 'height: calc(100% - 2rem);';
+    } else {
+      innerPages[outerKey][k].style = 'display: none;';
+
+      if (innerButtons[outerKey][k]) {
+        innerButtons[outerKey][k].style = '';
+      }
+    }
+  });
+};
+
+sellStatusBtn.onclick = (e) => {
+  window.showPage('sell');
+  showInnerPage('sell', 'status');
+};
+
+sellSettingsBtn.onclick = (e) => {
+  window.showPage('sell');
+  showInnerPage('sell', 'settings');
+};
+
+
+if  (location.hash === '#sell-status') {
+  showInnerPage('sell', 'status');
+} else if (location.hash === '#sell-settings') {
+  showInnerPage('sell', 'settings');
+} else {
+  showInnerPage('sell', 'status');
+}
+
+
 //== Naive Market Settings ====================================================
 
 const addStarNameInp = document.querySelector("#add-star-name-input");
