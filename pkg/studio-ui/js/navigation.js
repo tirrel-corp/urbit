@@ -3,13 +3,13 @@
 const landingBtn = document.querySelector("#landing-btn");
 const publishBtn = document.querySelector("#publish-btn");
 
+const landingPage = document.querySelector("#landing-page");
+const publishPage = document.querySelector("#publish-page");
+
+
 const sellBtn = document.querySelector("#sell-btn");
 const sellStatusBtn = document.querySelector("#sell-status-btn");
 const sellSettingsBtn = document.querySelector("#sell-settings-btn");
-
-
-const landingPage = document.querySelector("#landing-page");
-const publishPage = document.querySelector("#publish-page");
 
 const sellPage = document.querySelector("#sell-page");
 const sellStatusPage = document.querySelector("#sell-status-inner-page");
@@ -30,6 +30,21 @@ const pages = {
   publish: publishPage,
 };
 
+const innerButtons = {
+  sell: {
+    status: sellStatusBtn,
+    settings: sellSettingsBtn
+  }
+};
+
+const innerPages = {
+  sell: {
+    status: sellStatusPage,
+    settings: sellSettingsPage
+  }
+};
+
+
 const showPage = (key = null) => {
   if (!key) { return; }
   Object.keys(pages).forEach((k) => {
@@ -46,21 +61,6 @@ const showPage = (key = null) => {
       }
     }
   });
-};
-
-
-const innerButtons = {
-  sell: {
-    status: sellStatusBtn,
-    settings: sellSettingsBtn
-  }
-};
-
-const innerPages = {
-  sell: {
-    status: sellStatusPage,
-    settings: sellSettingsPage
-  }
 };
 
 const showInnerPage = (outerKey = null, key = null) => {
@@ -85,8 +85,12 @@ const showInnerPage = (outerKey = null, key = null) => {
 
 
 landingBtn.onclick = (e) => { showPage('landing'); };
+publishBtn.onclick = (e) => { showPage('publish'); };
 
-sellBtn.onclick = (e) => { showPage('sell'); showInnerPage('sell', 'status'); };
+sellBtn.onclick = (e) => {
+  showPage('sell');
+  showInnerPage('sell', 'status');
+};
 
 sellStatusBtn.onclick = (e) => {
   showPage('sell');
@@ -97,8 +101,6 @@ sellSettingsBtn.onclick = (e) => {
   showPage('sell');
   showInnerPage('sell', 'settings');
 };
-
-publishBtn.onclick = (e) => { showPage('publish'); };
 
 if (location.hash === '#sell' || location.hash === '#sell-status') {
   showPage('sell');
