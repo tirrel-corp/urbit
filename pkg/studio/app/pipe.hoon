@@ -202,7 +202,7 @@
       ?~  email.flow
         ~
       =/  =email-template  (~(got by email-templates) u.email.flow)
-      =/  email=website    (email-template (get-inputs name flow)) :: XX
+      =/  email=website    (email-template (get-inputs:pc name flow)) :: XX
       [(give-email:pc name email)]~
     ::
     ++  update-to-flows
