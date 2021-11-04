@@ -1,7 +1,7 @@
 :: naive-market [tirrel]
 ::
-/-  *naive-market, dice
-/+  ntx=naive-transactions, eth=ethereum, default-agent, dbug, verb
+/-  dice
+/+  *naive-market, ntx=naive-transactions, eth=ethereum, default-agent, dbug, verb
 |%
 +$  card  card:agent:gall
 +$  state-0
@@ -255,6 +255,19 @@
   ?>  (team:title our.bowl src.bowl)
   ?:  ?=([%updates ~] path)
     `this
+  ?:  ?=([%configuration ~] path)
+    =/  state-as-json=(list json)
+      :+  (enjs [%set-price price])
+        (enjs [%set-referrals referrals])
+      %+  turn  ~(tap by star-configs)
+      |=  [who=ship =config]
+      ^-  json
+      (enjs [%add-star-config who config])
+    :_  this
+    %+  turn  state-as-json
+    |=  =json
+    ^-  card
+    [%give %fact /configuration^~ %json !>(json)]~
   (on-watch:def path)
 ::
 ++  on-leave  on-leave:def
