@@ -257,17 +257,20 @@
     `this
   ?:  ?=([%configuration ~] path)
     =/  state-as-json=(list json)
-      :+  (enjs [%set-price price])
-        (enjs [%set-referrals referrals])
+      :-  (update:enjs [%set-referrals referrals])
       %+  turn  ~(tap by star-configs)
       |=  [who=ship =config]
       ^-  json
-      (enjs [%add-star-config who config])
+      (update:enjs [%add-star-config who config])
+    =.  state-as-json
+      ?~  price  state-as-json
+      :-  (update:enjs [%set-price u.price])
+      state-as-json
     :_  this
     %+  turn  state-as-json
     |=  =json
     ^-  card
-    [%give %fact /configuration^~ %json !>(json)]~
+    [%give %fact /configuration^~ %json !>(json)]
   (on-watch:def path)
 ::
 ++  on-leave  on-leave:def
