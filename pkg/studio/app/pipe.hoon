@@ -2,7 +2,14 @@
 ::
 ::
 /-  *pipe, meta=metadata-store
-/+  default-agent, dbug, verb, graph, pipe-json, server, *pipe-templates
+/+  default-agent,
+    dbug,
+    verb,
+    graph,
+    pipe-json,
+    server,
+    *pipe-templates,
+    pipe-render
 |%
 +$  card  card:agent:gall
 +$  template  $-(update:store:graph website)
@@ -264,6 +271,22 @@
     :^  ~  ~  %json  !>
     :-  %o
     (~(run by flows) flow:enjs:pipe-json)
+  ::
+      [%x %preview ?(%site %email) @ ~]
+    ?+  i.t.t.path  !!
+        %site
+      =/  temp  (~(get by site-templates) i.t.t.t.path)
+      ?~  temp
+        [~ ~]
+      =/  site  (u.temp lorem-ipsum:pipe-render)
+      =/  index=mime    (~(got by site) /)
+      =/  article=mime  (~(got by site) /ut-enim-ad-minim-veniam)
+      :^  ~  ~  %json  !>
+      %-  pairs:enjs:format
+      :~  index+s+q.q.index
+          article+s+q.q.index
+      ==
+    ==
   ==
 ::
 ++  on-leave  on-leave:def
