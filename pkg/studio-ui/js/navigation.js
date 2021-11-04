@@ -100,9 +100,12 @@ sellSettingsBtn.onclick = (e) => {
 
 publishBtn.onclick = (e) => { showPage('publish'); };
 
-if (location.hash === '#sell') {
+if (location.hash === '#sell' || location.hash === '#sell-status') {
   showPage('sell');
   showInnerPage('sell', 'status');
+} else if (location.hash === '#sell-settings') {
+  showPage('sell');
+  showInnerPage('sell', 'settings');
 } else if (location.hash === '#publish') {
   showPage('publish');
 } else {
