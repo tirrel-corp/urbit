@@ -1,7 +1,7 @@
 :: pipe [tirrel]: graph-store to website conversion
 ::
 ::
-/-  *pipe
+/-  *pipe, meta=metadata-store
 /+  default-agent, dbug, verb, graph, pipe-json, server, *pipe-templates
 |%
 +$  card  card:agent:gall
@@ -327,13 +327,30 @@
       ==
   (gth t.a t.b)
 ::
+++  get-metadata
+  |=  res=resource
+  ^-  association:meta
+  %-  need
+  %^  scry  %metadata-store
+    (unit association:meta)
+  /metadata/graph/ship/(scot %p entity.res)/[name.res]/noun
+::
 ++  get-inputs
   |=  [name=term =flow]
   ^-  site-inputs
   :*  name
-      title.flow
       binding:(need site.flow)
       (get-posts resource.flow)
+      (get-metadata resource.flow)
+  ==
+::
+++  scry
+  |*  [=term =mold =path]
+  .^  mold  %gx
+      (scot %p our.bowl)
+      term
+      (scot %da now.bowl)
+      path
   ==
 ::
 --

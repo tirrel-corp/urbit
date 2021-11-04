@@ -1,4 +1,4 @@
-/-  *pipe, *post, store=graph-store
+/-  *pipe, *post, store=graph-store, metadata-store
 /+  *pipe-render, cram
 ^-  $-(site-inputs website)
 |=  sinp=site-inputs
@@ -9,18 +9,18 @@
     |=  [initial=@da =post]
     %:  article-page
         name.sinp
-        title.sinp
         binding.sinp
         initial
         post
+        association.sinp
     ==
 ::
 +$  article-inputs
   $:  name=term
-      title=@t
       =binding:eyre
       initial=@da
       =post
+      =association:metadata-store
   ==
 ::
 ++  index-page
@@ -39,16 +39,16 @@
       ;link(rel "stylesheet", href "https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css");
     ==
     ;+  %-  frame
-    :*  (header binding.si title.si)
+    :*  (header binding.si title.metadatum.association.si)
         %+  turn  posts.si
         |=  [initial=@da =post]
         ^-  manx
         %:  article-preview
             name.si
-            title.si
             binding.si
             initial
             post
+            association.si
         ==
     ==
   ==
@@ -133,7 +133,7 @@
       ;title: {(trip text.title)} - by {(trip (scot %p author.post.ai))}
     ==
     ;+  %-  frame
-    :*  (header binding.ai title.ai)
+    :*  (header binding.ai title.metadatum.association.ai)
         ;h1(class "f2 lh-title {q.accent-font}", style "margin-block-end: 0;")
           ; {(trip text.title)}
         ==

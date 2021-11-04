@@ -1,8 +1,7 @@
-/-  *post
+/-  *post, meta=metadata-store
 |%
 +$  flow
   $:  =resource
-      title=@t
       =index
       site=(unit [template=term =binding:eyre])
       email=(unit term)
@@ -14,9 +13,9 @@
 ::
 +$  site-inputs
   $:  name=term
-      title=@t
       =binding:eyre
       posts=(list [@da post])
+      =association:meta
   ==
 +$  site-template   $-(site-inputs website)
 +$  email-template  $-(site-inputs website)  :: XX
