@@ -25,73 +25,24 @@
             mailing list open rate, and planet sales
           -->
         </div>
+
+<!-- Publish Page ------------------------------------------------------------->
         <div id="publish-page" class="h-100 w-100 overflow-y-auto pa3" style="display:none;">
           <div class="w-100">
-            <h2>Mailing Lists</h2>
-            <div class="w-100">
-              <p class="pt4 b">Credentials</p>
-              <div class="w-100 flex pb2 pt2">
-                <p class="w5-ns mr2">Sendgrid API Key</p>
-                <input id="sendgrid-api-input" class="w5-ns pa2 ba b--near-black br1 input-reset" placeholder="SG.asdf" />
-              </div>
-              <div class="w-100 flex pb2 pt2">
-                <p class="w5-ns mr2">Sender Email Address</p>
-                <input id="sendgrid-email-input" class="w5-ns pa2 ba b--near-black br1 input-reset" placeholder="me@urbit.org" />
-              </div>
-              <div class="w-100 flex pb2 pt2">
-                <p class="w5-ns mr2">Ship URL</p>
-                <input id="sendgrid-url-input" class="w5-ns pa2 ba b--near-black br1 input-reset" placeholder="https://zod.me" />
-              </div>
-              <div class="w-100 pt2">
-                <button id="sendgrid-creds-button" class="w5-ns pa3 bg-near-black white bn hover-bg-mid-gray br1 button-reset pointer">Set Credentials</button>
-              </div>
+            <h2 class="mt5">Publishing</h2>
+            <div id="manage-existing" class="w-100">
+              <p id="empty-flows" class="w5-ns mr2">You are not currently publishing any notebooks.</p>
             </div>
-          </div>
-          <div class="w-100">
-            <h2 class="mt5">Static Sites</h2>
-            <div class="w-100">
-              <p class="pt4 b">Add Flow</p>
-              <div class="w-100 flex pb2 pt2">
-                <p class="w5-ns mr2">Name</p>
-                <input id="flow-name-input" class="w5-ns pa2 ba b--near-black br1 input-reset" placeholder="blog" />
-              </div>
-              <div class="w-100 flex pb2 pt2">
-                <p class="w5-ns mr2">Source Graph</p>
-                <input id="flow-res-input" class="w5-ns pa2 ba b--near-black br1 input-reset" placeholder="~bitbet-bolbel/blog" />
-              </div>
-              <div class="w-100 flex pb2 pt2">
-                <p class="w5-ns mr2">Web URL To Serve To</p>
-                <input id="flow-index-input" class="w5-ns pa2 ba b--near-black br1 input-reset" placeholder="blog" />
-              </div>
-              <div class="w-100 flex pb2 pt2">
-                <p class="w5-ns mr2">HTML Renderer Mark</p>
-                <input id="flow-mark-input" class="w5-ns pa2 ba b--near-black br1 input-reset" placeholder="pipe-template-blog-index" />
-              </div>
-              <div class="w-100 flex pb2 pt2 items-center">
-                <div class="w5-ns mr2 flex items-center">
-                  <p class="mr3">Serve Webpage?</p>
-                  <input id="flow-serve-input" type="checkbox" class="pa2" />
-                </div>
-                <div class="w5-ns mr2 flex items-center">
-                  <p class="mr3">Mail Posts to Mailing List?</p>
-                  <input id="flow-email-input" type="checkbox" class="pa2" />
-                </div>
-              </div>
-              <div class="w-100 pt2">
-                <button id="add-flow-btn" class="w5-ns pa3 bg-near-black white bn hover-bg-mid-gray br1 button-reset pointer">Add Flow</button>
-              </div>
-            </div>
-            <div class="w-100 mt5 pb3">
-              <p class="pt4 b">Remove Flow</p>
-              <div class="w-100 flex pb2 pt2">
-                <select id="flow-remove-name-input" class="w5-ns pa2 mr2 ba b--near-black br1 input-reset">
-                  <option value="" disabled selected>Select your option</option>
-                </select>
-                <button id="remove-flow-btn" class="w5-ns pa3 bg-near-black white bn hover-bg-mid-gray br1 button-reset pointer">Remove Flow</button>
+            <div id="add-new">
+              <button id="add-flow-btn" class="w5-ns pa3 bg-near-black white bn hover-bg-mid-gray br1 button-reset pointer">Add New +</button>
+              <div id="notebook-list" style="display:none;" class="flex flex-column">
+                <p id="empty-notebooks" class="w5-ns mr2">You do not currently have any notebooks, create one in Groups to proceed.</p>
               </div>
             </div>
           </div>
         </div>
+
+<!-- Sell Page ---------------------------------------------------------------->
         <div id="sell-page" class="h-100 w-100 f6" style="display:none;">
           <div class="w-100 flex items-center b pa3 bb b--mid-gray" style="height: 2rem;">
             <div class="flex tc">
