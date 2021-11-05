@@ -9,7 +9,9 @@
     pipe-json,
     server,
     *pipe-templates,
-    pipe-render
+    pipe-render,
+    resource,
+    meta-lib=metadata-store
 |%
 +$  card  card:agent:gall
 +$  template  $-(update:store:graph website)
@@ -270,7 +272,47 @@
       [%x %flows ~]
     :^  ~  ~  %json  !>
     :-  %o
-    (~(run by flows) flow:enjs:pipe-json)
+    %-  ~(rut by flows)
+    |=  [name=term =flow]
+    =/  =association:meta  (get-metadata:pc resource.flow)
+    %-  pairs:enjs:format
+    :~  flow+(flow:enjs:pipe-json flow)
+        metadata+(metadatum:enjs:meta-lib metadatum:association)
+    ==
+  ::
+      [%x %notebooks ~]
+    =/  assoc=associations:meta
+      %^  scry:pc  %metadata-store
+        associations:meta
+      /app-name/graph/noun
+    :^  ~  ~  %json  !>
+    :-  %a
+    %-  ~(rep by assoc)
+    |=  [[=md-resource:meta =association:meta] out=(list json)]
+    ?.  ?&  =(our.bowl entity.resource.md-resource)
+            =(our.bowl creator.metadatum.association)
+            =([%graph %publish] config.metadatum.association)
+        ==
+      out
+    :_  out
+    %-  pairs:enjs:format
+    :~  resource+(enjs:resource resource.md-resource)
+        metadata+(metadatum:enjs:meta-lib metadatum.association)
+    ==
+  ::
+      [%x %templates ~]
+    :^  ~  ~  %json  !>
+    %-  pairs:enjs:format
+    :~  :+  %site  %a
+        %+  turn  ~(tap by site-templates)
+        |=  [=term *]
+        [%s term]
+    ::
+        :+  %email  %a
+        %+  turn  ~(tap by email-templates)
+        |=  [=term *]
+        [%s term]
+    ==
   ::
       [%x %preview ?(%site %email) @ ~]
     ?+  i.t.t.path  !!
