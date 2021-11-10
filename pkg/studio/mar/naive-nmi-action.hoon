@@ -6,6 +6,7 @@
   |%
   ++  noun  act
   ++  naive-nmi-action  act
+  ++  json  (action:enjs act)
   --
 ::
 ++  grab

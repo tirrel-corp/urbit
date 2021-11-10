@@ -473,6 +473,7 @@
   ?:  ?=([%updates ~] path)
     `this
   ?:  ?=([%configuration ~] path)
+    ~&  path
     :_  this
     :~  [%give %fact ~ naive-nmi-action+!>([%set-api-key api-key])]
         [%give %fact ~ naive-nmi-action+!>([%set-site site])]

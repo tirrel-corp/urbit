@@ -1,6 +1,22 @@
 /-  *naive-nmi
 /+  nam=naive-market
 |%
+++  enjs
+  =,  enjs:format
+  |%
+  ++  action
+    |=  act=^action
+    ^-  json
+    %+  frond  %naive-nmi-action
+    %+  frond  -.act
+    ?-  -.act
+      %initiate-sale  ~
+      %complete-sale  ~
+      %set-api-key    ?~(key.act ~ s+u.key.act)
+      %set-site       ~
+    ==
+  --
+::
 ++  dejs
   =,  dejs:format
   |%
