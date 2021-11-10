@@ -183,11 +183,15 @@
     ^-  (quip card _state)
     |^
     ?-    -.action
-      %set-api-key       `state(api-key `key.action)
+        %set-api-key
+      ?>  ?=(^ key.action)
+      :_  state(api-key key.action)
+      [%give %fact /configuration^~ naive-nmi-action+!>(action)]^~
     ::
         %set-site
-      =*  host    host.action
-      =*  suffix  suffix.action
+      ?>  ?=(^ site.action)
+      =*  host    host.u.site.action
+      =*  suffix  suffix.u.site.action
       =/  full-url=cord
         %+  rap  3
         :-  'https://'
@@ -198,6 +202,7 @@
       =/  old-host      ?~(site ~ `host.u.site)
       =/  suf-pax=path  ?~(suffix ~ u.suffix^~)
       :_  state(redirect-url `full-url, site `[host suffix])
+      :-  [%give %fact /configuration^~ naive-nmi-action+!>(action)]
       %-  zing
       :~  ?~  site  ~
           [%pass /eyre %arvo %e %disconnect [old-host old-pax]]~
@@ -467,6 +472,11 @@
     `this
   ?:  ?=([%updates ~] path)
     `this
+  ?:  ?=([%configuration ~] path)
+    :_  this
+    :~  [%give %fact ~ naive-nmi-action+!>([%set-api-key api-key])]
+        [%give %fact ~ naive-nmi-action+!>([%set-site site])]
+    ==
   (on-watch:def path)
 ::
 ++  on-peek
