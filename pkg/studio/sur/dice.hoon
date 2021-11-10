@@ -1,23 +1,48 @@
-::  dice: structures for L2 Rollers
+::  dice: structures for L2 rollers
 ::
 /+  naive, ethereum
 ::
 |%
-+$  owner   [=proxy:naive =address:naive]
-+$  owners  (jug owner ship)
++$  owner     [=proxy:naive =address:naive]
++$  owners    (jug owner ship)
++$  sponsors  (map ship [residents=(set ship) requests=(set ship)])
++$  net       ?(%mainnet %ropsten %local %default)
+::
++$  config
+  $%  [%frequency frequency=@dr]
+      [%setkey pk=@]
+      [%endpoint endpoint=@t =net]
+      [%resend-time time=@dr]
+      [%update-rate rate=@dr]
+      [%slice slice=@dr]
+      [%quota quota=@ud]
+  ==
+::
++$  indices
+  $:  nas=^state:naive
+      own=owners
+      spo=sponsors
+  ==
+::
++$  azimuth-config
+  $:  refresh-rate=@dr
+  ==
 ::
 +$  roller-config
   $:  next-batch=time
       frequency=@dr
-      refresh-time=@dr
+      resend-time=@dr
+      update-rate=@dr
       contract=@ux
       chain-id=@
+      slice=@dr
+      quota=@ud
   ==
 ::
 +$  keccak  @ux
 ::
 +$  status
-  ?(%unknown %pending %sending %confirmed %failed)
+  ?(%unknown %pending %sending %confirmed %failed %cancelled)
 ::
 +$  tx-status
   $:  =status
@@ -45,13 +70,13 @@
 ::
 +$  update
   $%  [%point =ship =point:naive new=owner old=(unit owner)]
-      [%tx =address:ethereum =roller-tx]
+      [%tx =address:ethereum =roll-tx]
   ==
 ::
-+$  roller-tx  [=ship =status hash=keccak =time type=l2-tx]
-::
-+$  pend-tx    [force=? =address:naive =time =raw-tx:naive]
-::
++$  hist-tx  [p=time q=roll-tx]
++$  roll-tx  [=ship =status hash=keccak type=l2-tx]
++$  pend-tx  [force=? =address:naive =time =raw-tx:naive]
++$  send-tx  [next-gas-price=@ud sent=? txs=(list raw-tx:naive)]
 +$  part-tx
   $%  [%raw raw=octs]
       [%don =tx:naive]
