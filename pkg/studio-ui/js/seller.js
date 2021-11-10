@@ -1,11 +1,32 @@
 //== Inner Navigation
 
+const getStartedFlow = document.querySelector("#sell-get-started-flow");
+const mainFlow = document.querySelector("#sell-main-flow");
+
 const sellStatusPage = document.querySelector("#sell-status-inner-page");
 const sellSettingsPage = document.querySelector("#sell-settings-inner-page");
 
+const getStartedBtn = document.querySelector("#get-started-sell-btn");
 const sellStatusBtn = document.querySelector("#sell-status-btn");
 const sellSettingsBtn = document.querySelector("#sell-settings-btn");
 
+
+//== Outer Display Logic
+
+const sellFlowSelector = () => {
+  if (store.state.seller.isSetup) {
+    getStartedFlow.style = 'display:none;';
+    mainFlow.style = '';
+  } else {
+    getStartedFlow.style = '';
+    mainFlow.style = 'display:none;';
+  }
+};
+
+sellFlowSelector();
+
+
+//==  Main flow
 
 const innerButtons = {
   sell: {
@@ -52,13 +73,30 @@ sellSettingsBtn.onclick = (e) => {
 };
 
 
-if  (location.hash === '#sell-status') {
+if (location.hash === '#sell-status') {
   showInnerPage('sell', 'status');
 } else if (location.hash === '#sell-settings') {
   showInnerPage('sell', 'settings');
 } else {
   showInnerPage('sell', 'status');
 }
+
+
+//== Get Started Flow
+
+getStartedBtn.onclick = () => {
+  store.state.seller.isSetup = !store.state.seller.isSetup;
+  sellFlowSelector();
+};
+
+
+//== Reactive Logic
+addHookToStore(
+  'seller',
+  (state) => {
+    console.log(state);
+  }
+);
 
 
 //== Naive Market Settings ====================================================

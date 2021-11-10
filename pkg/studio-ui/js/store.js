@@ -1,17 +1,26 @@
 
 window.store = {
-  seller: {
-    naiveMarket: null,
-    naiveNMI: null
+  hookLists: {},
+  state: {
+    seller: {
+      isSetup: false
+    }
   }
 };
 
-let naiveMarketReducer = (store, update) => {
-  return store;
+const sellerReducer = (state, update) => {
+  console.log(update);
+  state.isSetup = !state.isSetup;
+  return state;
 };
 
-let naiveNMIReducer = (store, update) => {
-  return store;
+
+const addHookToStore = (name = '', hook = (state) => {}) => {
+  if (name in store.hookLists) {
+    store.hookLists[name].push(hook);
+  } else {
+    store.hookLists[name] = [hook];
+  }
 };
 
 window.reduceStore = (update = null) => {
@@ -19,9 +28,23 @@ window.reduceStore = (update = null) => {
     return;
   }
 
-  console.log(update);
-  window.store.seller = naiveMarketReducer(window.store.seller, update);
-  window.store.seller = naiveNMIReducer(window.store.seller, update);
+  let newState = {};
+  newState.seller = sellerReducer(store.state.seller, update);
+
+  Object.keys(store.hookLists).forEach((name) => {
+    let hooks = store.hookLists[name];
+    hooks.forEach((hook) => {
+      console.log(hooks);
+      console.log(store.state[name], newState[name]);
+      if (JSON.stringify(store.state[name]) === JSON.stringify(newState[name])) {
+        return;
+      } else {
+        hook(newState[name]);
+      }
+    });
+  });
+
+  window.store.state = newState;
 };
 
 api.subscribe({
