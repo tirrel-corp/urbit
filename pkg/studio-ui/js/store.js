@@ -59,7 +59,7 @@ api.subscribe({
 
 api.subscribe({
   app: 'naive-nmi',
-  path: '/updates',
+  path: '/configuration',
   event: (json) => {
     window.reduceStore({ app: 'naive-nmi', data: json });
   },
