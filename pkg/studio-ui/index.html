@@ -44,12 +44,48 @@
 
 <!-- Sell Page -->
         <div id="sell-page" class="h-100 w-100 f6" style="display:none;">
-          <div id="sell-get-started-flow" class="h-100 w-100 flex tc justify-center items-center">
-            <div>
-              <p class="f5 mb3">Ready to start selling planets?</p>
-              <button id="get-started-sell-btn" class="bg-near-black pa3 pl4 pr4 white bn hover-bg-mid-gray br1 button-reset pointer">Get Started</button>
+<!-- Sell Tutorial Flow -->
+          <div id="sell-get-started-flow" class="h-100 w-100 overflow-y-none">
+            <div class="w-100 flex items-center b pa3 bb b--mid-gray" style="height: 2rem;">
+              <div class="flex tc">
+                <p class="b">Get Started</p>
+              </div>
+            </div>
+            <div id="sell-start-0" class="w-100 h-100 flex justify-center items-center">
+              <div class="tc w-100">
+                <p class="f5 mb3">Ready to start selling planets?</p>
+                <button id="get-started-sell-btn" class="bg-near-black pa3 pl4 pr4 white bn hover-bg-mid-gray br1 button-reset pointer">Get Started</button>
+              </div>
+            </div>
+            <div id="sell-start-1" class="w-100 h-100 flex justify-center" style="display:none;">
+              <div class="w-50-ns pl2 pr2 mt4">
+                <p class="f5 mb3">First, you'll need to add a star's information:</p>
+                <div class="w-100">
+                  <p class="pt4 b">Add a Star's Configuration</p>
+                  <div class="w-100 flex pb2 pt2 justify-center">
+                    <p class="w5-ns mr2">Star Name</p>
+                    <input id="get-started-add-star-name-input" class="w5-ns pa2 ba b--near-black br1 input-reset" placeholder="~marzod" />
+                  </div>
+                  <div class="w-100 flex pb2 pt2 justify-center">
+                    <p class="w5-ns mr2">Star Private Key</p>
+                    <input id="get-started-add-star-prv-input" class="w5-ns pa2 ba b--near-black br1 input-reset" placeholder="~lidlut-tabwed-pillex-ridrup" />
+                  </div>
+                  <div class="w-100 flex pb2 pt2 justify-center">
+                    <p class="w5-ns mr4">Key Type</p>
+                    <select id="get-started-add-star-proxy-input" class="w5-ns pa2 ba b--near-black br1 input-reset">
+                      <option value="" disabled selected>Select your option</option>
+                      <option value="own">Ownership</option>
+                      <option value="spawn">Spawn Proxy</option>
+                    </select>
+                  </div>
+                  <div class="w-100 pt2">
+                    <button id="get-started-add-star-config-btn" class="w5-ns pa3 bg-near-black white bn hover-bg-mid-gray br1 button-reset pointer">Add Star</button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
+<!--  Main Sell Flow Configuration / Status Pages -->
           <div id="sell-main-flow" class="h-100 w-100" style="display:none;">
             <div class="w-100 flex items-center b pa3 bb b--mid-gray" style="height: 2rem;">
               <div class="flex tc">

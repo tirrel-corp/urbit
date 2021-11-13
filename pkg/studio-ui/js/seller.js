@@ -6,6 +6,9 @@ const mainFlow = document.querySelector("#sell-main-flow");
 const sellStatusPage = document.querySelector("#sell-status-inner-page");
 const sellSettingsPage = document.querySelector("#sell-settings-inner-page");
 
+const startZeroPage = document.querySelector("#sell-start-0");
+const startOnePage = document.querySelector("#sell-start-1");
+
 const getStartedBtn = document.querySelector("#get-started-sell-btn");
 const sellStatusBtn = document.querySelector("#sell-status-btn");
 const sellSettingsBtn = document.querySelector("#sell-settings-btn");
@@ -13,17 +16,25 @@ const sellSettingsBtn = document.querySelector("#sell-settings-btn");
 
 //== Outer Display Logic
 
-const sellFlowSelector = () => {
-  if (store.state.seller.isSetup) {
+const sellFlowSelector = (state) => {
+  if (
+    !!state.nmi.site &&
+    !!state.nmi.apiKey &&
+    !!state.market.price &&
+    !!state.market.stars &&
+    Object.keys(state.market.stars).length > 0
+  ) {
     getStartedFlow.style = 'display:none;';
     mainFlow.style = '';
+
+    // TODO: if we are in setup mode, determine *where* in setup mode we are
   } else {
     getStartedFlow.style = '';
     mainFlow.style = 'display:none;';
   }
 };
 
-sellFlowSelector();
+sellFlowSelector(store.state.seller);
 
 
 //==  Main flow
@@ -32,13 +43,18 @@ const innerButtons = {
   sell: {
     status: sellStatusBtn,
     settings: sellSettingsBtn
-  }
+  },
+  start: {}
 };
 
 const innerPages = {
   sell: {
     status: sellStatusPage,
     settings: sellSettingsPage
+  },
+  start: {
+    zero: startZeroPage,
+    one: startOnePage
   }
 };
 
@@ -85,8 +101,8 @@ if (location.hash === '#sell-status') {
 //== Get Started Flow
 
 getStartedBtn.onclick = () => {
-  store.state.seller.isSetup = !store.state.seller.isSetup;
-  sellFlowSelector();
+  //  TODO: move forward in tutorial flow
+  showInnerPage('start', 'one');
 };
 
 
@@ -94,7 +110,8 @@ getStartedBtn.onclick = () => {
 addHookToStore(
   'seller',
   (state) => {
-    console.log(state);
+    sellFlowSelector(state);
+    console.log('state changed', state);
   }
 );
 
