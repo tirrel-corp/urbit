@@ -105,6 +105,88 @@ getStartedBtn.onclick = () => {
   showInnerPage('start', 'one');
 };
 
+const deSig = (txt = '') => {
+  if (!txt || txt.length < 1) { return txt; }
+  if (txt[0] === '~') {
+    return txt.slice(1);
+  } else {
+    return txt;
+  }
+};
+
+const stripClass = (classes = '', name = '') => {
+  return classes.split(' ').filter((c) => {
+    return !(
+      c === name
+    );
+  }).join(' ');
+};
+
+
+const GSAddStarNameInp = document.querySelector("#get-started-add-star-name-input");
+const GSAddStarPrvInp  = document.querySelector("#get-started-add-star-prv-input");
+const GSAddStarProxyInp = document.querySelector("#get-started-add-star-proxy-input");
+const GSAddStarBtn = document.querySelector("#get-started-add-star-config-btn");
+
+
+let isGSStarFormValid = [false, false, false];
+let GSStarFormButtonValid = () => {
+  if (isGSStarFormValid[0] && isGSStarFormValid[1] && isGSStarFormValid[2]) {
+    GSAddStarBtn.disabled = false;
+    GSAddStarBtn.className =
+      stripClass(GSAddStarBtn.className, 'bg-gray');
+    GSAddStarBtn.className =
+      stripClass(GSAddStarBtn.className, 'hover-bg-gray');
+  } else {
+    GSAddStarBtn.disabled = true;
+    GSAddStarBtn.className += ' bg-gray hover-bg-gray';
+  }
+};
+
+GSAddStarNameInp.oninput = () => {
+  const isValidPatp = urbitOb.isValidPatp;
+
+  if (isValidPatp('~' + deSig(GSAddStarNameInp.value))) {
+    GSAddStarNameInp.className =
+      stripClass(GSAddStarNameInp.className, 'b--dark-red');
+    isGSStarFormValid[0] = true;
+  } else {
+    GSAddStarNameInp.className += ' b--dark-red';
+  }
+
+  GSStarFormButtonValid();
+};
+
+GSAddStarPrvInp.oninput = () => {
+  const isValidPatq = urbitOb.isValidPatq;
+
+  if (isValidPatq('~' + deSig(GSAddStarPrvInp.value))) {
+    GSAddStarPrvInp.className =
+      stripClass(GSAddStarPrvInp.className, 'b--dark-red');
+    isGSStarFormValid[1] = true;
+  } else {
+    GSAddStarPrvInp.className += ' b--dark-red';
+  }
+
+  GSStarFormButtonValid();
+};
+
+GSAddStarProxyInp.onchange = () => {
+  if (!!GSAddStarProxyInp.value && GSAddStarProxyInp.value.length > 0) {
+    GSAddStarProxyInp.className =
+      stripClass(GSAddStarProxyInp.className, 'b--dark-red')
+    isGSStarFormValid[2] = true;
+  } else {
+    GSAddStarProxyInp.className += ' b--dark-red';
+  }
+
+  GSStarFormButtonValid();
+};
+
+GSAddStarBtn.onclick = () => {
+  if (GSAddStarBtn.disabled) { return; }
+  console.log('ayyy');
+};
 
 //== Reactive Logic
 addHookToStore(

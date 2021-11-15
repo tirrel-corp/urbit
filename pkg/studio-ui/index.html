@@ -51,36 +51,35 @@
                 <p class="b">Get Started</p>
               </div>
             </div>
-            <div id="sell-start-0" class="w-100 h-100 flex justify-center items-center">
+            <div id="sell-start-0" class="w-100 h-100 flex justify-center items-center pa1">
               <div class="tc w-100">
                 <p class="f5 mb3">Ready to start selling planets?</p>
+                <p class="f5 mb3">Your star must be on <a class="black" href="https://urbit.org/blog/rollups" target="_blank">Layer 2</a> to use this software.</p>
+                <p class="f5 mb4">Move your star or its spawn proxy to Layer 2 <a class="black" href="https://bridge.urbit.org" target="_blank">here</a>.</p>
                 <button id="get-started-sell-btn" class="bg-near-black pa3 pl4 pr4 white bn hover-bg-mid-gray br1 button-reset pointer">Get Started</button>
               </div>
             </div>
-            <div id="sell-start-1" class="w-100 h-100 flex justify-center" style="display:none;">
-              <div class="w-50-ns pl2 pr2 mt4">
-                <p class="f5 mb3">First, you'll need to add a star's information:</p>
-                <div class="w-100">
-                  <p class="pt4 b">Add a Star's Configuration</p>
-                  <div class="w-100 flex pb2 pt2 justify-center">
-                    <p class="w5-ns mr2">Star Name</p>
-                    <input id="get-started-add-star-name-input" class="w5-ns pa2 ba b--near-black br1 input-reset" placeholder="~marzod" />
-                  </div>
-                  <div class="w-100 flex pb2 pt2 justify-center">
-                    <p class="w5-ns mr2">Star Private Key</p>
-                    <input id="get-started-add-star-prv-input" class="w5-ns pa2 ba b--near-black br1 input-reset" placeholder="~lidlut-tabwed-pillex-ridrup" />
-                  </div>
-                  <div class="w-100 flex pb2 pt2 justify-center">
-                    <p class="w5-ns mr4">Key Type</p>
-                    <select id="get-started-add-star-proxy-input" class="w5-ns pa2 ba b--near-black br1 input-reset">
-                      <option value="" disabled selected>Select your option</option>
-                      <option value="own">Ownership</option>
-                      <option value="spawn">Spawn Proxy</option>
-                    </select>
-                  </div>
-                  <div class="w-100 pt2">
-                    <button id="get-started-add-star-config-btn" class="w5-ns pa3 bg-near-black white bn hover-bg-mid-gray br1 button-reset pointer">Add Star</button>
-                  </div>
+            <div id="sell-start-1" class="w-100 h-100 flex justify-center pa1" style="display:none;">
+              <div class="w-100 w-50-ns mt4">
+                <p class="pt4 b">Add a Star's Configuration</p>
+                <div class="w-100 flex pb2 pt2 justify-between">
+                  <p class="w5-ns w-40">Name</p>
+                  <input id="get-started-add-star-name-input" class="w5-ns w-60 pa2 ba b--near-black br1 input-reset" placeholder="~marzod" />
+                </div>
+                <div class="w-100 flex pb2 pt2 justify-between">
+                  <p class="w5-ns w-40">Private Key</p>
+                  <input id="get-started-add-star-prv-input" class="w5-ns w-60 pa2 ba b--near-black br1 input-reset" placeholder="~lidlut-tabwed-pillex-ridrup" />
+                </div>
+                <div class="w-100 flex pb2 pt2 justify-between">
+                  <p class="w5-ns w-40">Key Type</p>
+                  <select id="get-started-add-star-proxy-input" class="w5-ns w-60 pa2 ba b--near-black br1 input-reset">
+                    <option value="" disabled selected>Select your option</option>
+                    <option value="own">Ownership</option>
+                    <option value="spawn">Spawn Proxy</option>
+                  </select>
+                </div>
+                <div class="w-100 pt2">
+                  <button id="get-started-add-star-config-btn" class="w5-ns pa3 bg-near-black white bn hover-bg-mid-gray br1 button-reset pointer bg-gray hover-bg-gray">Add Star</button>
                 </div>
               </div>
             </div>
@@ -188,6 +187,7 @@
     <script type="text/javascript" src="/session.js"></script>
     <script type="text/javascript" src="./desk.js"></script>
     <script type="text/javascript" src="./vendor/urbit-http-api.js"></script>
+    <script type="text/javascript" src="./vendor/urbit-ob-5.0.1.js"></script>
     <script type="text/javascript" src="./js/navigation.js"></script>
     <script type="text/javascript" src="./js/api.js"></script>
     <script type="text/javascript" src="./js/store.js"></script>
