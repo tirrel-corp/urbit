@@ -27,17 +27,23 @@ const sellerReducer = (state, update) => {
     break;
   case 'naive-market':
     switch (key) {
-    case 'set-referrals':
-      state.market.referrals = val;
-      break;
     case 'add-star-config':
       if (!('stars' in state.market)) {
         state.market.stars = {};
       }
       state.market.stars[val.who] = val.config;
       break;
+    case 'del-star-config':
+      if (!('stars' in state.market)) {
+        state.market.stars = {};
+      }
+      delete state.market.stars[val];
+      break;
     case 'set-price':
       state.market.price = val;
+      break;
+    case 'set-referrals':
+      state.market.referrals = val;
       break;
     }
     return state;
