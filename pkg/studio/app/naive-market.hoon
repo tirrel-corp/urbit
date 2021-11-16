@@ -251,27 +251,30 @@
 ::
 ++  on-watch
   |=  =path
+  |^
   ^-  (quip card _this)
   ?>  (team:title our.bowl src.bowl)
   ?:  ?=([%updates ~] path)
     `this
   ?:  ?=([%configuration ~] path)
-    =/  state-as-json=(list json)
-      :-  (update:enjs [%set-referrals referrals])
-      %+  turn  ~(tap by star-configs)
-      |=  [who=ship =config]
-      ^-  json
-      (update:enjs [%add-star-config who config])
-    =.  state-as-json
-      ?~  price  state-as-json
-      :-  (update:enjs [%set-price u.price])
-      state-as-json
     :_  this
-    %+  turn  state-as-json
+    %+  turn  state-to-json
     |=  =json
     ^-  card
     [%give %fact /configuration^~ %json !>(json)]
   (on-watch:def path)
+  ::
+  ++  state-to-json
+    ^-  (list json)
+    =-  ?~  price  -
+        [(update:enjs [%set-price u.price]) -]
+    ^-  (list json)
+    :-  (update:enjs [%set-referrals referrals])
+    %+  turn  ~(tap by star-configs)
+    |=  [who=ship =config]
+    ^-  json
+    (update:enjs [%add-star-config who config])
+  --
 ::
 ++  on-leave  on-leave:def
 ++  on-peek

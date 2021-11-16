@@ -7,7 +7,6 @@
   ++  action
     |=  act=^action
     ^-  json
-    %+  frond  %naive-nmi-action
     %+  frond  -.act
     ?-  -.act
       %initiate-sale  ~

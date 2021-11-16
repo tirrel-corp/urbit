@@ -58,7 +58,7 @@
       (ship who.upd)
     ::
         %set-price
-      %+  frond  %price
+      %+  frond  %set-price
       (price price.upd)
     ::
         %set-referrals
