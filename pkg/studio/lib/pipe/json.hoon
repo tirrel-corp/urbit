@@ -34,8 +34,42 @@
 ++  enjs
   =,  enjs:format
   |%
+  ++  update
+    |=  u=^update
+    ^-  json
+    %+  frond  -.u
+    ?-  -.u
+        %site   ~
+        %email  ~
+    ::
+        %flows
+      :-  %o
+      %-  ~(gas by *(map @t json))
+      %+  turn  ~(tap by flows.u)
+      |=  [name=term f=^flow]
+      ^-  [@t json]
+      :-  name
+      (flow f)
+    ::
+        %templates
+      %-  pairs
+      :~  site+(templates site.u)
+          email+(templates email.u)
+      ==
+    ==
+  ::
+  ++  templates
+    |=  s=(set term)
+    ^-  json
+    :-  %a
+    %+  turn  ~(tap in s)
+    |=  t=term
+    ^-  json
+    [%s t]
+  ::
   ++  flow
     |=  f=^flow
+    ^-  json
     %-  pairs
     :~  resource+(enjs:resource resource.f)
         index+(index:enjs:graph-store index.f)
