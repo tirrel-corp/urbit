@@ -5,9 +5,41 @@ window.store = {
     seller: {
       market: {},
       nmi: {}
+    },
+    publish: {
+      pipe: {},
+      mailer: {}
     }
   }
 };
+
+const publishReducer = (state, update) => {
+  if (typeof update.data !== 'object') { return; }
+  let key = Object.keys(update.data)[0];
+  let val  = update.data[key];
+  switch (update.app) {
+  case 'mailer':
+    state.mailer = val;
+    break;
+  case 'pipe':
+    switch (key) {
+    case 'site':
+      break;
+    case 'email':
+      break;
+    case 'flows':
+      state.pipe.flows = val;
+      break;
+    case 'templates':
+      state.pipe.templates = val;
+      break;
+    }
+    break;
+  default:
+    break;
+  }
+  return state;
+}
 
 const sellerReducer = (state, update) => {
   if (typeof update.data !== 'object') { return; }
@@ -69,6 +101,7 @@ window.reduceStore = (update = null) => {
 
   let newState = JSON.parse(JSON.stringify(store.state));
   newState.seller = sellerReducer(newState.seller, update);
+  newState.publish = publishReducer(newState.publish, update);
 
   Object.keys(store.hookLists).forEach((name) => {
     let hooks = store.hookLists[name];
@@ -100,6 +133,26 @@ setTimeout(() => {
     path: '/configuration',
     event: (json) => {
       window.reduceStore({ app: 'naive-nmi', data: json });
+    },
+    quit: () => {},
+    err: () => {}
+  });
+
+  api.subscribe({
+    app: 'pipe',
+    path: '/updates',
+    event: (json) => {
+      window.reduceStore({ app: 'pipe', data: json });
+    },
+    quit: () => {},
+    err: () => {}
+  });
+
+  api.subscribe({
+    app: 'mailer',
+    path: '/updates',
+    event: (json) => {
+      window.reduceStore({ app: 'mailer', data: json });
     },
     quit: () => {},
     err: () => {}
