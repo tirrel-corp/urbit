@@ -17,8 +17,21 @@
       posts=(list [@da post])
       =association:meta
   ==
+::
++$  email-inputs
+  $:  name=term
+      site-binding=(unit binding:eyre)
+      =post
+      =association:meta
+  ==
 +$  site-template   $-(site-inputs website)
-+$  email-template  $-(site-inputs website)  :: XX
++$  email-template  $-(email-inputs email)
 +$  website  (map path mime)
-+$  update   [%built name=term =website]
++$  email    [subject=@t body=mime]
++$  update
+  $%  [%site name=term =website]
+      [%email name=term =email]
+      [%flows flows=(map term flow)]
+      [%templates site=(set term) email=(set term)]
+  ==
 --

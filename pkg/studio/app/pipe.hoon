@@ -47,7 +47,8 @@
   ^-  (quip card _this)
 ::  `this(state *state-0)
   =/  old  !<(state-0 old-vase)
-  `this(state old)
+  :_  this(state old)
+  [give-templates:pc]~
 ::
 ++  on-poke
   |=  [=mark =vase]
@@ -83,12 +84,13 @@
       =/  =site-template
         ~|  "no such template: {<template.u.site.action>}"
         (~(got by site-templates) template.u.site.action)
-      =/  =website   (site-template (get-inputs:pc name.action +>.action))
-      =.  sites        (~(put by sites) name.action website)
+      =/  =website  (site-template (get-site-inputs:pc name.action +>.action))
+      =.  sites     (~(put by sites) name.action website)
       =?  host-to-name  ?=(^ site.binding.u.site.action)
         (~(put by host-to-name) u.site.binding.u.site.action name.action)
       :_  state
-      :*  (give:pc name.action website)
+      :*  (give-site:pc name.action website)
+          give-flows:pc
           (serve:pc name.action binding.u.site.action)
       ==
     ::
@@ -100,16 +102,14 @@
         :-  [%pass /eyre %arvo %e %disconnect binding.u.site.flow]~
         ?~  site.binding.u.site.flow  host-to-name
         (~(del by host-to-name) site.binding.u.site.flow)
-      :-  cards
-      %_    state
-        flows  (~(del by flows) name.action)
-        sites  (~(del by sites) name.action)
-      ::
-          uid-to-name
+      =.  flows  (~(del by flows) name.action)
+      =.  sites  (~(del by sites) name.action)
+      =.  uid-to-name
         %+  ~(del ju uid-to-name)
           [resource.flow index.flow]
         name.action
-      ==
+      :_  state
+      [give-flows:pc cards]
     ==
   ::
   ++  handle-http-request
@@ -194,8 +194,8 @@
       ?~  site.flow
         `state
       =/  =site-template  (~(got by site-templates) template.u.site.flow)
-      =/  =website   (site-template (get-inputs:pc name flow))
-      :-  [(give:pc name website)]~
+      =/  =website   (site-template (get-site-inputs:pc name flow))
+      :-  [(give-site:pc name website)]~
       state(sites (~(put by sites) name website))
     ::
     ++  update-email
@@ -203,8 +203,22 @@
       ^-  (list card)
       ?~  email.flow
         ~
+      ?.  ?=(%add-nodes -.q.update)
+        ~
+      =/  post=(unit post:store:graph)
+        %-  ~(rep by nodes.q.update)
+        |=  [[=index =node:store:graph] out=(unit post:store:graph)]
+        ?.  ?=([@ @ @ ~] index)
+          out
+        ?.  =(1 i.t.t.index)  :: only send first revision
+          out
+        ?.  ?=(%& -.post.node)
+          out
+        `p.post.node
+      ?~  post
+        ~
       =/  =email-template  (~(got by email-templates) u.email.flow)
-      =/  email=website    (email-template (get-inputs:pc name flow)) :: XX
+      =/  =email  (email-template (get-email-inputs:pc name flow u.post))
       [(give-email:pc name email)]~
     ::
     ++  update-to-flows
@@ -249,17 +263,23 @@
   ^-  (quip card _this)
   ?>  (team:title our.bowl src.bowl)
   ?+    path  (on-watch:def path)
-      [%updates ~]  `this
+      [%email @ ~]        `this
+      [%http-response *]  `this
+  ::
+      [%updates ~]
+    =/  temp=update
+      [%templates ~(key by site-templates) ~(key by email-templates)]
+    :_  this
+    :~  [%give %fact ~ %pipe-update !>([%flows flows])]
+        [%give %fact ~ %pipe-update !>(temp)]
+    ==
   ::
       [%site @ ~]
     =*  name  i.t.path
-    =/  =update  [%built name (~(got by sites) name)]
+    =/  =update  [%site name (~(got by sites) name)]
     :_  this
     [%give %fact ~ %pipe-update !>(update)]~
   ::
-      [%email @ ~]  `this
-  ::
-      [%http-response *]  `this
   ==
 ::
 ++  on-peek
@@ -354,20 +374,27 @@
   :_  cards
   [%pass /eyre %arvo %e %disconnect binding.u.site.u.flo]
 ::
-++  give
+++  give-site
   |=  [name=term =website]
   ^-  card
-  =-  [%give %fact - [%pipe-update !>(`update`[%built name website])]]
-  :~  /updates
-      /site/[name]
-  ==
+  =/  =update  [%site name website]
+  [%give %fact [/site/[name]]~ %pipe-update !>(update)]
 ::
 ++  give-email
-  |=  [name=term =website]
+  |=  [name=term =email]
   ^-  card
-  =-  [%give %fact - [%pipe-update !>(`update`[%built name website])]]
-  :~  /email/[name]
-  ==
+  =/  =update  [%email name email]
+  [%give %fact [/email/[name]]~ %pipe-update !>(update)]
+::
+++  give-templates
+  ^-  card
+  =/  =update  [%templates ~(key by site-templates) ~(key by email-templates)]
+  [%give %fact [/updates]~ %pipe-update !>(update)]
+::
+++  give-flows
+  ^-  card
+  =/  =update  [%flows flows]
+  [%give %fact [/updates]~ %pipe-update !>(update)]
 ::
 ++  orm  ((on atom node:store:graph) gth)
 ::
@@ -406,12 +433,24 @@
     (unit association:meta)
   /metadata/graph/ship/(scot %p entity.res)/[name.res]/noun
 ::
-++  get-inputs
+++  get-site-inputs
   |=  [name=term =flow]
   ^-  site-inputs
   :*  name
       binding:(need site.flow)
       (get-posts resource.flow)
+      (get-metadata resource.flow)
+  ==
+::
+++  get-email-inputs
+  |=  [name=term =flow =post:store:graph]
+  ^-  email-inputs
+  =/  site-binding=(unit binding:eyre)
+    ?~  site.flow  ~
+    `binding.u.site.flow
+  :*  name
+      site-binding
+      post
       (get-metadata resource.flow)
   ==
 ::
