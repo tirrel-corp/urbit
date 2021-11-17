@@ -8,7 +8,8 @@ window.store = {
     },
     publish: {
       pipe: {},
-      mailer: {}
+      mailer: {},
+      notebooks: {},
     }
   }
 };
@@ -23,16 +24,42 @@ const publishReducer = (state, update) => {
     break;
   case 'pipe':
     switch (key) {
-    case 'site':
-      break;
-    case 'email':
-      break;
     case 'flows':
       state.pipe.flows = val;
       break;
     case 'templates':
       state.pipe.templates = val;
       break;
+    default:
+      break;
+    }
+    break;
+  case 'metadata':
+    let metakey = Object.keys(val)[0];
+    let metaval = val[metakey];
+    switch (metakey) {
+      case 'associations':
+        for (i in metaval) {
+          let association = metaval[i];
+          if (association['app-name'] !== 'graph') continue;
+          if (association.metadata.config.graph !== 'publish') continue;
+          if (association.metadata.creator.slice(1) !== window.ship) continue;
+          let res = association.resource;
+          state.notebooks[res] = association;
+        }
+        break;
+      case 'add':
+        if (metaval['app-name'] !== 'graph') break;
+        if (metaval.metadata.config.graph !== 'publish') break;
+        if (metaval.metadata.creator.slice(1) !== window.ship) break;
+        let res = metaval.resource;
+        state.notebooks[res] = metaval;
+        break;
+      case 'remove':
+        delete state.notebooks[metaval.resource];
+        break;
+      default:
+        break;
     }
     break;
   default:
@@ -84,7 +111,6 @@ const sellerReducer = (state, update) => {
     return state;
   }
 };
-
 
 const addHookToStore = (name = '', hook = (state) => {}) => {
   if (name in store.hookLists) {
@@ -153,6 +179,16 @@ setTimeout(() => {
     path: '/updates',
     event: (json) => {
       window.reduceStore({ app: 'mailer', data: json });
+    },
+    quit: () => {},
+    err: () => {}
+  });
+
+  api.subscribe({
+    app: 'metadata-store',
+    path: '/all',
+    event: (json) => {
+      window.reduceStore({ app: 'metadata', data: json });
     },
     quit: () => {},
     err: () => {}

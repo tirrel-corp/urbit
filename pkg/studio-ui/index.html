@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1">
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css" />
+    <link rel="stylesheet" href="css/custom.css" />
   </head>
   <body class="sans-serif bg-white near-black w-100 h-100 absolute overflow-hidden">
     <div class="w-100 flex items-center justify-between b pa3" style="height: 3rem;">
@@ -29,14 +30,15 @@
 <!-- Publish Page -->
         <div id="publish-page" class="h-100 w-100 overflow-y-auto pa3" style="display:none;">
           <div class="w-100">
-            <h2 class="mt5">Publishing</h2>
+            <h1 class="mt2">Publishing</h2>
+            <p id="empty-flows" class="w5-ns mr2" style="display:none;">You are not currently publishing any notebooks.</p>
             <div id="manage-existing" class="w-100">
-              <p id="empty-flows" class="w5-ns mr2">You are not currently publishing any notebooks.</p>
             </div>
+            <button id="cancel-add" class="bg-near-black white hover-bg-mid-gray br1 bn pa2" style="display:none;"> X</button>
             <div id="add-new">
-              <button id="add-flow-btn" class="w5-ns pa3 bg-near-black white bn hover-bg-mid-gray br1 button-reset pointer">Add New +</button>
+              <button id="add-flow-btn" class="w5-ns mt3 pa3 bg-near-black white bn hover-bg-mid-gray br1 button-reset pointer">Add New +</button>
+              <p id="empty-notebooks" class="w5-ns mr2" style="display:none;">You do not currently have any notebooks, create one in Groups to proceed.</p>
               <div id="notebook-list" style="display:none;" class="flex flex-column">
-                <p id="empty-notebooks" class="w5-ns mr2">You do not currently have any notebooks, create one in Groups to proceed.</p>
               </div>
             </div>
           </div>

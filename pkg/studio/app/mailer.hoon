@@ -183,11 +183,10 @@
         %del-recipients
       =/  old=(unit mailing-list)  (~(get by ml) name.act)
       ?~  old  ~|("no such mailing list: {<name.act>}" !!)
-      =/  recipients=mailing-list
-        %-  ~(run in mailing-list.act)
-        |=  email=@t
-        [email *@uv]
-      =/  new=mailing-list  (~(dif by u.old) recipients)
+      =/  new=mailing-list
+        %-  ~(rep in mailing-list.act)
+        |=  [email=@t out=_u.old]
+        (~(del by out) email)
       =.  ml  (~(put by ml) name.act new)
       :_  state
       [give-update:do]~
