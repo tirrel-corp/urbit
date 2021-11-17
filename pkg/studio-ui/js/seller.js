@@ -8,8 +8,11 @@ const sellSettingsPage = document.querySelector("#sell-settings-inner-page");
 
 const startZeroPage = document.querySelector("#sell-start-0");
 const startOnePage = document.querySelector("#sell-start-1");
+const startTwoPage = document.querySelector("#sell-start-2");
+const startThreePage = document.querySelector("#sell-start-3");
 
 const getStartedBtn = document.querySelector("#get-started-sell-btn");
+
 const sellStatusBtn = document.querySelector("#sell-status-btn");
 const sellSettingsBtn = document.querySelector("#sell-settings-btn");
 
@@ -17,20 +20,28 @@ const sellSettingsBtn = document.querySelector("#sell-settings-btn");
 //== Outer Display Logic
 
 const sellFlowSelector = (state) => {
+  const starConfigSet = 'stars' in state.market && Object.keys(state.market.stars).length > 0;
   if (
     !!state.nmi.site &&
     !!state.nmi.apiKey &&
     !!state.market.price &&
     !!state.market.stars &&
-    Object.keys(state.market.stars).length > 0
+    starConfigSet
   ) {
     getStartedFlow.style = 'display:none;';
     mainFlow.style = '';
-
-    // TODO: if we are in setup mode, determine *where* in setup mode we are
   } else {
     getStartedFlow.style = '';
     mainFlow.style = 'display:none;';
+    // TODO: if we are in setup mode, determine *where* in setup mode we are
+
+    if (starConfigSet && !state.nmi.apiKey && !state.nmi.price && !state.nmi.site) {
+      // step 2
+      showInnerPage('start', 'two');
+    } else if (starConfigSet && state.nmi.apiKey && state.nmi.price && !state.nmi.site) {
+      // step 3
+      showInnerPage('start', 'three');
+    }
   }
 };
 
@@ -54,7 +65,9 @@ const innerPages = {
   },
   start: {
     zero: startZeroPage,
-    one: startOnePage
+    one: startOnePage,
+    two: startTwoPage,
+    three: startThreePage
   }
 };
 
@@ -69,6 +82,7 @@ const showInnerPage = (outerKey = null, key = null) => {
 
       innerPages[outerKey][k].style = 'height: calc(100% - 2rem);';
     } else {
+      console.log(outerKey, k, innerPages[outerKey]);
       innerPages[outerKey][k].style = 'display: none;';
 
       if (innerButtons[outerKey][k]) {
@@ -101,7 +115,6 @@ if (location.hash === '#sell-status') {
 //== Get Started Flow
 
 getStartedBtn.onclick = () => {
-  //  TODO: move forward in tutorial flow
   showInnerPage('start', 'one');
 };
 
@@ -185,8 +198,36 @@ GSAddStarProxyInp.onchange = () => {
 
 GSAddStarBtn.onclick = () => {
   if (GSAddStarBtn.disabled) { return; }
-  console.log('ayyy');
+  naiveMarketPoke({
+    'add-star-config': {
+      ship: GSAddStarNameInp.value,
+      config: {
+        prv: GSAddStarPrvInp.value,
+        proxy: GSAddStarProxyInp.value
+      }
+    }
+  });
+  
+  showInnerPage('start', 'two');
 };
+
+const GSApiInp = document.querySelector("#get-started-api-input");
+const GSPriceInp = document.querySelector("#get-started-price-input");
+const GSPaymentBtn = document.querySelector("#get-started-payment-btn");
+
+GSPaymentBtn.onclick = () => {
+  naiveMarketPoke({
+    'set-price': {
+      amount: parseInt(GSPriceInp.value, 10),
+      currency: 'USD'
+    }
+  });
+
+  naiveNMIPoke({ 'set-api-key': GSApiInp.value });
+
+  showInnerPage('start', 'three');
+};
+
 
 //== Reactive Logic
 addHookToStore(

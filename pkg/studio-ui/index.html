@@ -48,22 +48,17 @@
         <div id="sell-page" class="h-100 w-100 f6" style="display:none;">
 <!-- Sell Tutorial Flow -->
           <div id="sell-get-started-flow" class="h-100 w-100 overflow-y-none">
-            <div class="w-100 flex items-center b pa3 bb b--mid-gray" style="height: 2rem;">
-              <div class="flex tc">
-                <p class="b">Get Started</p>
-              </div>
-            </div>
             <div id="sell-start-0" class="w-100 h-100 flex justify-center items-center pa1">
-              <div class="tc w-100">
-                <p class="f5 mb3">Ready to start selling planets?</p>
-                <p class="f5 mb3">Your star must be on <a class="black" href="https://urbit.org/blog/rollups" target="_blank">Layer 2</a> to use this software.</p>
-                <p class="f5 mb4">Move your star or its spawn proxy to Layer 2 <a class="black" href="https://bridge.urbit.org" target="_blank">here</a>.</p>
+              <div class="tc w-100" style="font-size: 1.1rem;">
+                <p class="mb3">Ready to start selling planets?</p>
+                <p class="mb3">Your star must be on <a class="black" href="https://urbit.org/blog/rollups" target="_blank">Layer 2</a> to use this software.</p>
+                <p class="mb4">Move your star or its spawn proxy to Layer 2 <a class="black" href="https://bridge.urbit.org" target="_blank">here</a>.</p>
                 <button id="get-started-sell-btn" class="bg-near-black pa3 pl4 pr4 white bn hover-bg-mid-gray br1 button-reset pointer">Get Started</button>
               </div>
             </div>
             <div id="sell-start-1" class="w-100 h-100 flex justify-center pa1" style="display:none;">
-              <div class="w-100 w-50-ns mt4">
-                <p class="pt4 b">Add a Star's Configuration</p>
+              <div class="w-100 w-50-ns mt4" style="font-size: 1.1rem;">
+                <p class="b">Add a Star's Configuration</p>
                 <div class="w-100 flex pb2 pt2 justify-between">
                   <p class="w5-ns w-40">Name</p>
                   <input id="get-started-add-star-name-input" class="w5-ns w-60 pa2 ba b--near-black br1 input-reset" placeholder="~marzod" />
@@ -81,9 +76,28 @@
                   </select>
                 </div>
                 <div class="w-100 pt2">
-                  <button id="get-started-add-star-config-btn" class="w5-ns pa3 bg-near-black white bn hover-bg-mid-gray br1 button-reset pointer bg-gray hover-bg-gray">Add Star</button>
+                  <button disabled id="get-started-add-star-config-btn" class="w5-ns pa3 bg-near-black white bn hover-bg-mid-gray br1 button-reset pointer bg-gray hover-bg-gray">Add Star</button>
                 </div>
               </div>
+            </div>
+            <div id="sell-start-2" class="w-100 h-100 flex justify-center pa1" style="display:none;">
+              <div class="w-100 w-50-ns mt4" style="font-size: 1.1rem;">
+                <p class="b">Payment Gateway API Key</p>
+                <p class="f5">Don't have one yet? <a class="black" href="https://tirrel.typeform.com/register" target="_blank">Sign up</a> for credit card processing through <code>~tirrel</code>.</p>
+                <div class="w-100 flex pt2">
+                  <p class="w5-ns mr2">API Key</p>
+                  <input id="get-started-api-input" class="w5-ns pa2 ba b--near-black br1 input-reset" placeholder="2F822Rw39fx762MaV7Yy86jXGTC7sCDy" />
+                </div>
+                <p class="pt4 b">Price per Planet</p>
+                <p class="f5">Any whole number above zero!</p>
+                <div class="w-100 flex pt2">
+                  <p class="w5-ns mr2">Price (USD)</p>
+                  <input id="get-started-price-input" class="w5-ns pa2 ba b--near-black br1 input-reset" placeholder="50" />
+                </div>
+                <button disabled id="get-started-payment-btn" class="w5-ns pa3 bg-near-black white bn hover-bg-mid-gray br1 button-reset pointer mt5">Set Payment Details</button>
+              </div>
+            </div>
+            <div id="sell-start-3" class="w-100 h-100 flex justify-center pa1" style="display:none;">
             </div>
           </div>
 <!--  Main Sell Flow Configuration / Status Pages -->
