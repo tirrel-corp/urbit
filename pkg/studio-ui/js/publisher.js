@@ -30,7 +30,8 @@ const validateEmail = (email) => {
 }
 
 const validateDomain = (domain) => {
-  const re = /^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+$/;
+  const re = /^([A-Za-z0-9-]+\.)?[A-Za-z0-9-]+\.+[A-Za-z]+(:\d{2,5})?$/;
+
   return re.test(String(domain).toLowerCase());
 }
 
