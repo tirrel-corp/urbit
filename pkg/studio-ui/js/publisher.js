@@ -5,8 +5,10 @@ const addNew         = document.querySelector("#add-new");
 const emptyFlows     = document.querySelector("#empty-flows");
 const addFlowBtn     = document.querySelector("#add-flow-btn");
 const notebookList   = document.querySelector("#notebook-list");
+const notebookListContainer   = document.querySelector("#notebook-list-container");
 const emptyNotebooks = document.querySelector("#empty-notebooks");
 const cancelAdd      = document.querySelector("#cancel-add");
+const publish        = document.querySelector("#publish-page");
 
 addFlowBtn.onclick = () => {
   addFlowBtn.style.display = 'none';
@@ -20,6 +22,51 @@ cancelAdd.onclick = () => {
   manageExisting.style.display = '';
   cancelAdd.style.display = 'none';
   notebookList.style.display = 'none';
+}
+
+const validateEmail = (email) => {
+      const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      return re.test(String(email).toLowerCase());
+}
+
+const validateDomain = (domain) => {
+  const re = /^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+$/;
+  return re.test(String(domain).toLowerCase());
+}
+
+const validatePath = (path) => {
+  const re = /^(\/[\w|-]+)+$/
+  return re.test(String(path));
+}
+
+const validateApiKey = (key) => {
+  return ((key.slice(0, 3) === "SG.") && (key.length === 69));
+}
+
+const createRemove = (name, sub) => {
+  let erDiv = document.createElement('div');
+  erDiv.className = "flex mv1";
+  let er = document.createElement('p');
+  er.className = "mv1 mr2 pa1 w5-ns"
+  er.innerHTML = sub;
+
+  let eb = document.createElement('button');
+  eb.innerHTML = '-';
+  eb.className = "w2 b bg-white red br3 ba ml3 pa1 pointer b--red hover-bg-washed-red";
+  eb.onclick = () => {
+    let mailerDel = {
+      "del-recipients": {
+        name: name,
+        list: [sub]
+      }
+    };
+    mailerPoke(mailerDel).then((res) => {
+      erDiv.remove();
+    });
+  }
+  erDiv.appendChild(er);
+  erDiv.appendChild(eb);
+  return erDiv;
 }
 
 const createFlow = (name, flow, book, subscribers) => {
@@ -135,12 +182,78 @@ const createFlow = (name, flow, book, subscribers) => {
     areYouSure.style.display = 'none'
   }
 
+  let emailToggle = false;
+
+  let emailDiv = document.createElement('div');
+  emailDiv.className = "flex flex-column";
+
+  let emailList = document.createElement('div');
+  emailList.style.display = 'none';
+  emailList.className = "flex flex-column";
+
+  let showEmail = document.createElement('button');
+  showEmail.innerHTML = "Manage Subscribers";
+  showEmail.className = "mv2 w5-ns bg-white black br3 ba pa2 pointer b--black hover-bg-near-white";
+  showEmail.onclick = () => {
+    emailToggle = !emailToggle;
+    emailList.style.display = (emailToggle) ? '' : 'none';
+  }
+
+  let addEmailDiv = document.createElement('div');
+  addEmailDiv.className = "flex mv1 w-100";
+  let addEmail = document.createElement('input');
+  addEmail.className = "w5-ns pa2 ba b--near-black black br1 input-reset bg-white";
+  addEmail.placeholder = "recipient@example.com"
+
+  let addEmailButton = document.createElement('button');
+  addEmailButton.innerHTML = "+";
+  addEmailButton.disabled = true;
+  addEmailButton.className = "w2 b bg-near-white gray br3 ba ml2 pa1 b--light-silver hover-bg-near-white";
+
+  addEmail.oninput = () => {
+    if (validateEmail(addEmail.value)) {
+      addEmail.className = "w5-ns pa2 ba b--green green br1 input-reset bg-washed-green";
+      addEmailButton.className = "w2 b bg-white black br3 ba ml2 pa1 b--black hover-bg-near-white";
+      addEmailButton.disabled = false;
+    } else {
+      addEmail.className = "w5-ns pa2 ba b--near-black black br1 input-reset bg-white";
+      addEmailButton.className = "w2 b bg-near-white gray br3 ba ml2 pa1 b--light-silver hover-bg-near-white";
+      addEmailButton.disabled = true;
+    }
+  }
+
+  addEmailButton.onclick = () => {
+    let mailerDel = {
+      "add-recipients": {
+        name: name,
+        list: [addEmail.value]
+      }
+    };
+    mailerPoke(mailerDel);
+  }
+
+  addEmailDiv.appendChild(addEmail);
+  addEmailDiv.appendChild(addEmailButton);
+
+  emailList.appendChild(addEmailDiv);
+  if (subscribers != null && subscribers.length != 0) {
+    subscribers.forEach((sub) => {
+      let rem = createRemove(name, sub);
+      emailList.appendChild(rem);
+    });
+  }
+
+  emailDiv.appendChild(showEmail);
+  emailDiv.appendChild(emailList);
+
+
   areYouSure.appendChild(sureText);
   areYouSure.appendChild(yes);
   areYouSure.appendChild(no);
 
   expansion.appendChild(cancel);
   expansion.appendChild(areYouSure);
+  expansion.appendChild(emailDiv);
 
 
   let expanded = false;
@@ -172,16 +285,39 @@ const processCSV = (csv) => {
   return csv;
 }
 
-const createBook = (notebook, templates, i) => {
+const createBook = (notebook, templates, mailer) => {
   let res = resourceFromPath(notebook.resource);
+
+  let hostValid = false;
+  let pathValid = true;
+  let editCreds = ((mailer.creds == null) || (mailer.creds.email === null));
+  let apiValid = false;
+  let emailValid = false;
+  let templateValid = false;
+  let mailCheckBool = false;
 
   let node = document.createElement('div');
   node.className = "mt2 ba br1 mw6 flex-column b--black bg-white";
 
+  let submit = document.createElement('button');
+  submit.className = "w5-ns ml2 mt3 pa3 bg-near-white gray bn br1 button-reset"
+  submit.innerHTML = "Create";
+  submit.disabled = true;
+
   let stage = 0;
+  let titleDiv = document.createElement('div');
+  titleDiv.className = "pa3 ma0 pointer flex justify-between"
+
   let title = document.createElement('h3');
-  title.className = "pa3 ma0 pointer";
+  title.className = "pa0 ma0";
   title.innerHTML = notebook.metadata.title;
+
+  let fullUrl = document.createElement('p');
+  fullUrl.className = "mt1 mb0 f6 gray";
+  fullUrl.style.display = 'none';
+
+  titleDiv.appendChild(title);
+  titleDiv.appendChild(fullUrl);
 
   let step1 = document.createElement('div');
   step1.className = "ma3 flex-column flex";
@@ -200,8 +336,29 @@ const createBook = (notebook, templates, i) => {
   hostLabel.innerHTML = "Host name:";
 
   let host = document.createElement('input');
-  host.className = "w5-ns pa2 ba b--near-black br1 input-reset";
+  host.className = "w5-ns pa2 ba b--near-black black br1 input-reset bg-white";
   host.placeholder = "example.com"
+
+  host.oninput = () => {
+    hostValid = validateDomain(host.value);
+    if (hostValid) {
+      host.className = "w5-ns pa2 ba b--green green br1 input-reset bg-washed-green";
+    } else {
+      host.className = "w5-ns pa2 ba b--near-black black br1 input-reset bg-white";
+    }
+    if ((hostValid && pathValid && templateValid) &&
+        ((apiValid && emailValid) || !editCreds || !mailCheckBool)) {
+      submit.className = "w5-ns ml2 mt3 pa3 bg-near-black white bn hover-bg-mid-gray br1 button-reset pointer"
+      submit.disabled = false;
+    } else {
+      submit.className = "w5-ns ml2 mt3 pa3 bg-near-white gray bn br1 button-reset"
+      submit.disabled = true;
+    }
+    if (hostValid && pathValid) {
+      fullUrl.style.display = '';
+      fullUrl.innerHTML = 'https://' + host.value + path.value;
+    }
+  }
 
 //== Url path ==================================================================
 //
@@ -213,13 +370,35 @@ const createBook = (notebook, templates, i) => {
   pathLabel.innerHTML = "Path:";
 
   let path = document.createElement('input');
-  path.className = "w5-ns pa2 ba b--near-black br1 input-reset";
+  path.className = "w5-ns pa2 ba b--green green br1 input-reset bg-washed-green";
   path.value = `/${res.name}`;
+
+  path.oninput = () => {
+    pathValid = validatePath(path.value);
+    if (pathValid) {
+      path.className = "w5-ns pa2 ba b--green green br1 input-reset bg-washed-green";
+    } else {
+      path.className = "w5-ns pa2 ba b--near-black black br1 input-reset bg-white";
+    }
+    if ((hostValid && pathValid && templateValid) &&
+        ((apiValid && emailValid) || !editCreds || !mailCheckBool)) {
+      submit.className = "w5-ns ml2 mt3 pa3 bg-near-black white bn hover-bg-mid-gray br1 button-reset pointer"
+      submit.disabled = false;
+    } else {
+      submit.className = "w5-ns ml2 mt3 pa3 bg-near-white gray bn br1 button-reset"
+      submit.disabled = true;
+    }
+    if (hostValid && pathValid) {
+      fullUrl.style.display = '';
+      fullUrl.innerHTML = 'https://' + host.value + path.value;
+    }
+  }
+
 
 //== Template choice ===========================================================
 //
   let templateDiv = document.createElement('div');
-  templateDiv.className = "w-100 pv2 flex justify-between"
+  templateDiv.className = "w-100 pv3 flex justify-between bt"
 
   let t = document.createElement('p');
   t.className = 'ma2'
@@ -232,6 +411,18 @@ const createBook = (notebook, templates, i) => {
     let radioRow = document.createElement('div');
     let radioButton = document.createElement('input');
     let radioLabel = document.createElement('label');
+
+    radioButton.oninput = () => {
+      templateValid = true;
+      if ((hostValid && pathValid && templateValid) &&
+          ((apiValid && emailValid) || !editCreds || !mailCheckBool)) {
+        submit.className = "w5-ns ml2 mt3 pa3 bg-near-black white bn hover-bg-mid-gray br1 button-reset pointer"
+        submit.disabled = false;
+      } else {
+        submit.className = "w5-ns ml2 mt3 pa3 bg-near-white gray bn br1 button-reset"
+        submit.disabled = true;
+      }
+    }
 
     radioRow.className = 'flex pv1'
     radioButton.type = "radio"
@@ -250,14 +441,13 @@ const createBook = (notebook, templates, i) => {
 
 //== Enable email checkbox =====================================================
 //
-  let mailCheckBool = false;
   let mailCheckDiv = document.createElement('div');
-  mailCheckDiv.className = "flex ma2"
+  mailCheckDiv.className = "flex pa2 pt3 bt"
   let mailCheckLabel = document.createElement('p');
-  mailCheckLabel.innerHTML = "Enable email newsletter functionality with SendGrid:";
+  mailCheckLabel.innerHTML = "Enable email newsletter functionality with SendGrid";
   mailCheckLabel.className = "ma0";
   let mailCheck = document.createElement('input');
-  mailCheck.className="ml3";
+  mailCheck.className="ml2 mt1";
   mailCheck.type = "checkbox"
   mailCheck.onclick = (e) => {
     mailCheckBool = !mailCheckBool;
@@ -266,8 +456,32 @@ const createBook = (notebook, templates, i) => {
     } else {
       step2.style.display = 'none';
     }
+    if ((hostValid && pathValid && templateValid) &&
+        ((apiValid && emailValid) || !editCreds || !mailCheckBool)) {
+      submit.className = "w5-ns ml2 mt3 pa3 bg-near-black white bn hover-bg-mid-gray br1 button-reset pointer"
+      submit.disabled = false;
+    } else {
+      submit.className = "w5-ns ml2 mt3 pa3 bg-near-white gray bn br1 button-reset"
+      submit.disabled = true;
+    }
   }
+
+  let helpDiv = document.createElement('p');
+  helpDiv.innerHTML = "To send emails from your Urbit, you'll need a <a class='black' href='https://sendgrid.io' target='_blank'>SendGrid</a> account. And you will need to <a class='black' href='https://docs.sendgrid.com/ui/sending-email/sender-verification' target='_blank'>verify the email address</a> you want to send emails from, and <a class='black' href='https://debounce.io/resources/help-desk/integrations/getting-a-sendgrid-api-key/' target='_blank'>make an API key</a>."
+  helpDiv.style.display = 'none'
+  helpDiv.className = "bg-near-white ma2 pa3 br2";
+
+  let showHelp = false;
+  let mailHelp = document.createElement('a');
+  mailHelp.innerHTML = "(?)";
+  mailHelp.className = "mv0 ml1 pointer b underline"
+  mailHelp.onclick = () => {
+    showHelp = !showHelp;
+    helpDiv.style.display = (showHelp) ? '' : 'none';
+  }
+
   mailCheckDiv.appendChild(mailCheckLabel);
+  mailCheckDiv.appendChild(mailHelp);
   mailCheckDiv.appendChild(mailCheck);
 
 //== SendGrid api key ==========================================================
@@ -280,8 +494,31 @@ const createBook = (notebook, templates, i) => {
   apiKeyLabel.innerHTML = "SendGrid api key:";
 
   let apiKey = document.createElement('input');
-  apiKey.className = "w5-ns pa2 ba b--near-black br1 input-reset";
-  apiKey.placeholder = "SG.AbCd..."
+  if (editCreds){
+    apiKey.className = "w5-ns pa2 ba b--near-black black br1 input-reset bg-white";
+    apiKey.placeholder = "SG.AbCd..."
+  } else {
+    apiKey.disabled = true;
+    apiKey.className = "w5-ns pa2 ba b--light-silver br1 input-reset bg-near-white";
+    apiKey.value = "*********************************************************************";
+  }
+
+  apiKey.oninput = () => {
+    apiValid = validateApiKey(apiKey.value);
+    if (apiValid) {
+      apiKey.className = "w5-ns pa2 ba b--green green br1 input-reset bg-washed-green";
+    } else {
+      apiKey.className = "w5-ns pa2 ba b--near-black black br1 input-reset bg-white";
+    }
+    if ((hostValid && pathValid && templateValid) &&
+        ((apiValid && emailValid) || !editCreds || !mailCheckBool)) {
+      submit.className = "w5-ns ml2 mt3 pa3 bg-near-black white bn hover-bg-mid-gray br1 button-reset pointer"
+      submit.disabled = false;
+    } else {
+      submit.className = "w5-ns ml2 mt3 pa3 bg-near-white gray bn br1 button-reset"
+      submit.disabled = true;
+    }
+  }
 
   apiKeyDiv.appendChild(apiKeyLabel);
   apiKeyDiv.appendChild(apiKey);
@@ -289,18 +526,101 @@ const createBook = (notebook, templates, i) => {
 //== Email Address =============================================================
 //
   let emailDiv = document.createElement('div');
-  emailDiv.className = "w-100 pb2 pt2 flex justify-between";
+  emailDiv.className = "w-100 pb3 pt2 flex justify-between";
 
   let emailLabel = document.createElement('p');
   emailLabel.className = "ma2"
   emailLabel.innerHTML = "Email address:";
 
   let email = document.createElement('input');
-  email.className = "w5-ns pa2 ba b--near-black br1 input-reset";
-  email.placeholder = "me@example.com"
+  if (editCreds) {
+    email.className = "w5-ns pa2 ba b--near-black black br1 input-reset bg-white";
+    email.placeholder = "me@example.com"
+  } else {
+    email.disabled = true;
+    email.className = "w5-ns pa2 ba b--light-silver br1 input-reset bg-near-white";
+    email.value = mailer.creds.email;
+  }
+
+  email.oninput = () => {
+    emailValid = validateEmail(email.value);
+    if (emailValid) {
+      email.className = "w5-ns pa2 ba b--green green br1 input-reset bg-washed-green";
+    } else {
+      email.className = "w5-ns pa2 ba b--near-black black br1 input-reset bg-white";
+    }
+    if ((hostValid && pathValid && templateValid) &&
+        ((apiValid && emailValid) || !editCreds || !mailCheckBool)) {
+      submit.className = "w5-ns ml2 mt3 pa3 bg-near-black white bn hover-bg-mid-gray br1 button-reset pointer"
+      submit.disabled = false;
+    } else {
+      submit.className = "w5-ns ml2 mt3 pa3 bg-near-white gray bn br1 button-reset"
+      submit.disabled = true;
+    }
+  }
 
   emailDiv.appendChild(emailLabel);
   emailDiv.appendChild(email);
+
+//== SendGrid edit  ============================================================
+//
+
+  let editDiv = document.createElement('div');
+  editDiv.className = "w-100 pb2 pt2 flex";
+  let editLabel = document.createElement('p');
+  editLabel.className = "ma2 green b"
+  editLabel.innerHTML = "SendGrid credentials already set";
+
+  let editButton = document.createElement('button');
+  editButton.innerHTML = "Edit"
+  editButton.className = "w3-ns bg-white black br3 ba ml4 pa1 pointer b--black hover-bg-near-white mr2"
+  editButton.onclick = () => {
+    editCreds = !editCreds;
+    if (editCreds) {
+      editButton.className = "w3-ns bg-black white br3 ba ml4 pa1 pointer b--black hover-bg-near-black mr2"
+      editButton.innerHTML = "Cancel"
+      email.disabled = false;
+      email.className = "w5-ns pa2 ba b--green green br1 input-reset bg-washed-green";
+      email.placeholder = "me@example.com"
+      apiKey.disabled = false;
+      apiKey.className = "w5-ns pa2 ba b--near-black black br1 input-reset bg-white";
+      apiKey.placeholder = "SG.AbCd..."
+      apiKey.value = '';
+      apiValid = false;
+    } else {
+      editButton.innerHTML = "Edit"
+      editButton.className = "w3-ns bg-white black br3 ba ml4 pa1 pointer b--black hover-bg-near-white mr2"
+      email.disabled = true;
+      email.className = "w5-ns pa2 ba b--light-silver br1 input-reset bg-near-white";
+      email.value = mailer.creds.email;
+      apiKey.disabled = true;
+      apiKey.className = "w5-ns pa2 ba b--light-silver br1 input-reset bg-near-white";
+      apiKey.value = "*********************************************************************";
+      apiValid = true;
+    }
+    if ((hostValid && pathValid && templateValid) &&
+        ((apiValid && emailValid) || !editCreds || !mailCheckBool)) {
+      submit.className = "w5-ns ml2 mt3 pa3 bg-near-black white bn hover-bg-mid-gray br1 button-reset pointer"
+      submit.disabled = false;
+    } else {
+      submit.className = "w5-ns ml2 mt3 pa3 bg-near-white gray bn br1 button-reset"
+      submit.disabled = true;
+    }
+  }
+
+  editDiv.appendChild(editLabel);
+  editDiv.appendChild(editButton);
+
+//== Mailing List ==============================================================
+//
+  let mailingDiv = document.createElement('div');
+  mailingDiv.className = "w-100 pt2 flex justify-between bt";
+
+  let mailingLabel = document.createElement('p');
+  mailingLabel.className = "ma2"
+  mailingLabel.innerHTML = "Add email recipients";
+
+  mailingDiv.appendChild(mailingLabel);
 
 //== Upload csv ================================================================
 //
@@ -309,7 +629,7 @@ const createBook = (notebook, templates, i) => {
 
   let uploadLabel = document.createElement('p');
   uploadLabel.className = "ma2"
-  uploadLabel.innerHTML = "Upload mailing list (csv):";
+  uploadLabel.innerHTML = "Upload mailing list csv:";
 
   let upload = document.createElement('input');
   let csv="";
@@ -326,15 +646,79 @@ const createBook = (notebook, templates, i) => {
   uploadDiv.appendChild(uploadLabel);
   uploadDiv.appendChild(upload);
 
+//== Mailing List ==============================================================
+//
+  emailList = {};
+
+  let emailListDiv = document.createElement('div');
+  emailListDiv.className = "flex flex-column ma2";
+
+  let emailAddDiv = document.createElement('div');
+  emailAddDiv.className = "w-100 flex mv1";
+
+  let emailAdd = document.createElement('input');
+  emailAdd.className = "w5-ns pa2 ba b--near-black br1 input-reset bg-white";
+  emailAdd.placeholder = "recipient@example.com";
+
+  let emailAddButton = document.createElement('button');
+  emailAddButton.className = "w2 b bg-near-white gray br3 ba ml2 pa1 b--light-silver hover-bg-near-white"
+  emailAddButton.disabled = true;
+  emailAddButton.innerHTML = "+";
+  emailAddDiv.appendChild(emailAdd);
+  emailAddDiv.appendChild(emailAddButton);
+
+  emailListDiv.appendChild(emailAddDiv);
+
+  emailAddButton.onclick = () => {
+    emailList[emailAdd.value] = true;
+    let emailRemoveDiv = document.createElement('div');
+    emailRemoveDiv.className = "w-100 flex mv1";
+
+    let emailRemove = document.createElement('input');
+    emailRemove.className = "w5-ns pa2 ba b--near-black br1 input-reset";
+    emailRemove.disabled = true;
+    emailRemove.value = emailAdd.value;
+
+    let emailRemoveButton = document.createElement('button');
+    emailRemoveButton.className = "w2 b bg-white red br3 ba ml2 pa1 pointer b--red hover-bg-washed-red"
+    emailRemoveButton.innerHTML = "-";
+    emailRemoveButton.onclick = () => {
+      delete emailList[emailRemove.value];
+      emailRemoveDiv.remove();
+    }
+    emailRemoveDiv.appendChild(emailRemove);
+    emailRemoveDiv.appendChild(emailRemoveButton);
+    emailListDiv.insertBefore(emailRemoveDiv, emailAddDiv);
+    emailAdd.value = '';
+    emailAdd.className = "w5-ns pa2 ba b--near-black black br1 input-reset bg-white";
+    emailAddButton.disabled = true;
+    emailAddButton.className = "w2 b bg-near-white gray br3 ba ml2 pa1 b--light-silver hover-bg-near-white"
+  }
+
+  emailAdd.oninput = () => {
+    if (validateEmail(emailAdd.value)) {
+      emailAdd.className = "w5-ns pa2 ba b--green green br1 input-reset bg-washed-green";
+      emailAddButton.className = "w2 b bg-white black br3 ba ml2 pa1 pointer b--black hover-bg-near-white"
+      emailAddButton.disabled = false;
+    } else {
+      emailAdd.className = "w5-ns pa2 ba b--near-black black br1 input-reset bg-white";
+      emailAddButton.className = "w2 b bg-near-white gray br3 ba ml2 pa1 b--light-silver hover-bg-near-white"
+      emailAddButton.disabled = true;
+    }
+  }
+
+
+
 //== Submit button =============================================================
 //
-  let submit = document.createElement('button');
-  submit.className = "w5-ns ml2 mt3 pa3 bg-near-black white bn hover-bg-mid-gray br1 button-reset pointer"
-  submit.innerHTML = "Create";
+
 
   submit.onclick = () => {
+    console.log('clicked');
     let res = resourceFromPath(notebook.resource);
     let radioValue = document.querySelector('input[name="sitetemplate"]:checked').value;
+    let mailingList = Object.keys(emailList).concat(processCSV(csv));
+
     let pipeAction = {
       add: {
         name: res.name,
@@ -344,8 +728,8 @@ const createBook = (notebook, templates, i) => {
           site: {
             template: radioValue,
             binding: {
-              site: host.value || null,
-              path: path.value || '/',
+              site: host.value,
+              path: path.value
             },
           },
           email: 'light',
@@ -364,21 +748,41 @@ const createBook = (notebook, templates, i) => {
     let mailerListAction = {
       "add-list": {
         name: res.name,
-        list: processCSV(csv)
+        list: mailingList
       }
     };
 
     pipePoke(pipeAction).then((res) => {
       if (!mailCheckBool) return;
-      mailerPoke(mailerCredsAction).then((res) => {
-        mailerPoke(mailerListAction);
-      });
+      if (editCreds) {
+        mailerPoke(mailerCredsAction).then((res) => {
+          mailerPoke(mailerListAction).then((res) => {
+            addFlowBtn.style.display = '';
+            manageExisting.style.display = '';
+            cancelAdd.style.display = 'none';
+            notebookList.style.display = 'none';
+          });
+        });
+      } else {
+        mailerPoke(mailerListAction).then((res) => {
+          addFlowBtn.style.display = '';
+          manageExisting.style.display = '';
+          cancelAdd.style.display = 'none';
+          notebookList.style.display = 'none';
+        });
+      }
     });
   }
 
+
+  if ((mailer.creds != null) && (mailer.creds.email !== null)) {
+    step2.appendChild(editDiv);
+  }
   step2.appendChild(apiKeyDiv);
   step2.appendChild(emailDiv);
+  step2.appendChild(mailingDiv);
   step2.appendChild(uploadDiv);
+  step2.appendChild(emailListDiv);
 
   templateDiv.appendChild(t);
   templateDiv.appendChild(radioCol);
@@ -393,18 +797,19 @@ const createBook = (notebook, templates, i) => {
   step1.appendChild(pathDiv);
   step1.appendChild(templateDiv);
   step1.appendChild(mailCheckDiv);
+  step1.appendChild(helpDiv);
   step1.appendChild(step2);
   step1.appendChild(submit);
 
-  node.appendChild(title);
+  node.appendChild(titleDiv);
 
-  title.onclick = () => {
+  titleDiv.onclick = () => {
     if (stage == 0) {
-      title.className = "pa3 ma0 bg-near-white pointer";
+      titleDiv.className = "pa3 ma0 bg-near-white pointer flex justify-between";
       node.appendChild(step1);
       stage = 1;
     } else {
-      title.className = "pa3 ma0 pointer";
+      titleDiv.className = "pa3 ma0 pointer flex justify-between";
       stage = 0;
       node.removeChild(step1)
     }
@@ -423,7 +828,6 @@ const publishRender = (state) => {
   let flowRes = [];
   if ((flows == null) || (Object.keys(flows).length === 0)) {
     emptyFlows.style = '';
-    console.log('foobar');
   } else {
     emptyFlows.style = 'display: none';
     Object.keys(flows).forEach((f) => {
@@ -448,7 +852,7 @@ const publishRender = (state) => {
     Object.keys(books).forEach((f) => {
       let res = books[f].resource;
       if (flowRes.indexOf(res) === -1) {
-        let bookNode = createBook(books[f], templates);
+        let bookNode = createBook(books[f], templates, mailer);
         notebookList.appendChild(bookNode);
       }
     });

@@ -7,7 +7,11 @@
 +$  card  card:agent:gall
 +$  state-0
   $:  %0
-      creds=(unit [api-key=@t email=@t ship-url=@t])
+      $=  creds
+      $:  api-key=(unit @t)
+          email=(unit @t)
+          ship-url=(unit @t)
+      ==
       ml=(map term mailing-list)
   ==
 +$  versioned-state
@@ -142,7 +146,19 @@
       [(send-email:do email.act) *outbound-config:iris]
     ::
         %set-creds
-      =.  creds  `[api-key.act email.act ship-url.act]
+      =?  api-key.creds   ?=(^ api-key.act)
+        api-key.act
+      =?  email.creds     ?=(^ email.act)
+        email.act
+      =?  ship-url.creds  ?=(^ ship-url.act)
+        ship-url.act
+      :_  state
+      [give-update:do]~
+    ::
+        %unset-creds
+      =?  api-key.creds   api-key.act   ~
+      =?  email.creds     email.act     ~
+      =?  ship-url.creds  ship-url.act  ~
       :_  state
       [give-update:do]~
     ::
@@ -237,31 +253,6 @@
   ?+    path  (on-peek:def path)
       [%x %export ~]
     ``noun+!>(state)
-  ::
-      [%x %creds ~]
-    ?~  creds  [~ ~]
-    ``noun+!>(u.creds)
-  ::
-      [%x %creds-json ~]
-    :^  ~  ~  %json  !>
-    ?~  creds  ~
-    %-  pairs:enjs:format
-    :~  api-key+s+api-key.u.creds
-        email+s+email.u.creds
-        ship-url+s+ship-url.u.creds
-    ==
-  ::
-      [%x %mailing-lists ~]
-    :^  ~  ~  %json  !>
-    :-  %o
-    ^-  (map @t json)
-    %-  ~(run by ml)
-    |=  =mailing-list
-    ^-  json
-    :-  %a
-    %+  turn  ~(tap by mailing-list)
-    |=  [e=@t @uv]
-    [%s e]
   ==
 ::
 ++  on-agent
@@ -277,8 +268,12 @@
       %fact
     ?>  ?=([%pipe @ ~] wire)
     ?>  ?=(%pipe-update p.cage.sign)
-    ?~  creds
+    ?~  api-key.creds
       ~|("No Sendgrid credentials set up" !!)
+    ?~  email.creds
+      ~|("No Sendgrid credentials set up" !!)
+    ?~  ship-url.creds
+      ~|("No domain name set up" !!)
     =*  name  i.t.wire
     =+  !<(=update:pipe q.cage.sign)
     ~&  update
@@ -293,7 +288,7 @@
       |=  [address=@t token=@uv]
       =/  callback=@t
         %:  rap  3
-            ship-url.u.creds
+            u.ship-url.creds
             '/mailer/unsubscribe/'
             (scot %uv token)
             ~
@@ -303,7 +298,7 @@
           [['%unsubscribe-callback%' callback] ~]
       ==
     =/  =email
-      :*  [email.u.creds (scot %p our.bowl)]
+      :*  [u.email.creds (scot %p our.bowl)]
           subject.email.update
           content
           person
@@ -357,10 +352,10 @@
   |=  =email
   ^-  request:http
   ~&  %send-email
-  ?>  ?=(^ creds)
+  ?>  ?=(^ api-key.creds)
   :^  %'POST'  'https://api.sendgrid.com/v3/mail/send'
     :~  ['Content-type' 'application/json']
-        ['Authorization' (cat 3 'Bearer ' api-key.u.creds)]
+        ['Authorization' (cat 3 'Bearer ' u.api-key.creds)]
     ==
   :-  ~
   %-  json-to-octs:server

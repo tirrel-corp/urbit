@@ -7,7 +7,8 @@
     ^-  $-(json ^action)
     %-  of
     :~  [%send-email email]
-        [%set-creds (ot api-key+so email+so ship-url+so ~)]
+        [%set-creds (ot api-key+(mu so) email+(mu so) ship-url+(mu so) ~)]
+        [%unset-creds (ot api-key+bo email+bo ship-url+bo ~)]
         [%add-list (ot name+so list+(as so) ~)]
         [%del-list (ot name+so ~)]
         [%add-recipients (ot name+so list+(as so) ~)]
@@ -44,12 +45,11 @@
     ==
   ::
   ++  creds
-    |=  c=(unit [api-key=@t email=@t ship-url=@t])
+    |=  [api-key=(unit @t) email=(unit @t) ship-url=(unit @t)]
     ^-  json
-    ?~  c  ~
     %-  pairs:enjs:format
-    :~  email+s+email.u.c
-        ship-url+s+ship-url.u.c
+    :~  email+?~(email ~ s+u.email)
+        ship-url+?~(ship-url ~ s+u.ship-url)
     ==
   ::
   ++  mailing-lists

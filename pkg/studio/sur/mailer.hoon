@@ -15,7 +15,8 @@
 ::
 +$  action
   $%  [%send-email =email]
-      [%set-creds api-key=@t email=@t ship-url=@t]
+      [%set-creds api-key=(unit @t) email=(unit @t) ship-url=(unit @t)]
+      [%unset-creds api-key=? email=? ship-url=?]
       [%add-list name=term mailing-list=(set @t)]
       [%del-list name=term]
       [%add-recipients name=term mailing-list=(set @t)]
@@ -23,7 +24,7 @@
   ==
 ::
 +$  update
-  $%  [%initial creds=(unit [@t @t @t]) ml=(map term mailing-list)]
+  $%  [%initial creds=[(unit @t) (unit @t) (unit @t)] ml=(map term mailing-list)]
   ==
 ::
 +$  mailing-list  (map @t @uv)
