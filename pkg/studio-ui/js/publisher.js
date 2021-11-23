@@ -754,7 +754,13 @@ const createBook = (notebook, templates, mailer) => {
     };
 
     pipePoke(pipeAction).then((res) => {
-      if (!mailCheckBool) return;
+      if (!mailCheckBool) {
+        addFlowBtn.style.display = '';
+        manageExisting.style.display = '';
+        cancelAdd.style.display = 'none';
+        notebookList.style.display = 'none';
+        return;
+      }
       if (editCreds) {
         mailerPoke(mailerCredsAction).then((res) => {
           mailerPoke(mailerListAction).then((res) => {
