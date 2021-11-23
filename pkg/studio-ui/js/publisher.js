@@ -10,11 +10,20 @@ const emptyNotebooks = document.querySelector("#empty-notebooks");
 const cancelAdd      = document.querySelector("#cancel-add");
 const publish        = document.querySelector("#publish-page");
 
+let nav = {
+  expandAdd: false,
+  expandedBooks: {},
+  expandedFlows: {}
+}
+
+
 addFlowBtn.onclick = () => {
   addFlowBtn.style.display = 'none';
   manageExisting.style.display = 'none';
   cancelAdd.style.display = '';
   notebookList.style.display = '';
+  nav.expandAdd = true;
+  nav.expandedBooks = {};
 };
 
 cancelAdd.onclick = () => {
@@ -22,6 +31,8 @@ cancelAdd.onclick = () => {
   manageExisting.style.display = '';
   cancelAdd.style.display = 'none';
   notebookList.style.display = 'none';
+  nav.expandAdd = false;
+  nav.expandedBooks = {};
 }
 
 const validateEmail = (email) => {
@@ -107,12 +118,17 @@ const createFlow = (name, flow, book, subscribers) => {
   date.className = "ma0 mt1 gray f6";
   expansion.appendChild(date);
 
+  let emailDiv = document.createElement('div');
+  emailDiv.className = "flex flex-column";
+  emailDiv.style.display = 'none';
+
   if (subscribers !== null) {
     let subs = document.createElement('p');
     subs.innerHTML = (subscribers.length == 1) ? '1 subscriber' :
       `${subscribers.length} subscribers`;
     subs.className = "ma0 gray f6";
     expansion.appendChild(subs);
+    emailDiv.style.display = '';
   }
 
   let nlDiv = document.createElement('div');
@@ -138,13 +154,11 @@ const createFlow = (name, flow, book, subscribers) => {
   elDiv.appendChild(editLink);
   expansion.appendChild(elDiv);
 
-  let cancelling = false;
-
   let cancel = document.createElement('button');
   cancel.innerHTML = "Cancel Publishing"
   cancel.className = "w5-ns bg-white red br3 mt3 mb3 ba pa2 pointer b--red hover-bg-washed-red"
   cancel.onclick = () => {
-    cancelling = true;
+    nav.expandedFlows[name].cancel = true;
     cancel.style.display = 'none';
     areYouSure.style.display = ''
   }
@@ -152,6 +166,11 @@ const createFlow = (name, flow, book, subscribers) => {
   let areYouSure = document.createElement('div');
   areYouSure.className = "flex mt3"
   areYouSure.style.display = 'none';
+
+  if (nav.expandedFlows[name] && nav.expandedFlows[name].cancel) {
+    cancel.style.display = 'none';
+    areYouSure.style.display = '';
+  }
 
   let sureText = document.createElement('p');
   sureText.innerHTML = "Are you sure you want to cancel publishing?"
@@ -170,6 +189,7 @@ const createFlow = (name, flow, book, subscribers) => {
     };
 
     pipePoke(pipeAction).then((res) => {
+      delete nav.expandedFlows[name];
       if (subscribers !== null) {
         mailerPoke(mailerAction);
       }
@@ -180,15 +200,11 @@ const createFlow = (name, flow, book, subscribers) => {
   no.innerHTML = "No"
   no.className = "w3 bg-white blue br3 ba mv2 pa2 pointer b--blue hover-bg-washed-blue"
   no.onclick = () => {
-    cancelling = false;
+    nav.expandedFlows[name].cancel = false;
     cancel.style.display = '';
     areYouSure.style.display = 'none'
   }
 
-  let emailToggle = false;
-
-  let emailDiv = document.createElement('div');
-  emailDiv.className = "flex flex-column";
 
   let emailList = document.createElement('div');
   emailList.style.display = 'none';
@@ -197,9 +213,10 @@ const createFlow = (name, flow, book, subscribers) => {
   let showEmail = document.createElement('button');
   showEmail.innerHTML = "Manage Subscribers";
   showEmail.className = "mv2 w5-ns bg-white black br3 ba pa2 pointer b--black hover-bg-near-white";
+  emailList.style.display = (nav.expandedFlows[name] && nav.expandedFlows[name].subs) ? '' : 'none';
   showEmail.onclick = () => {
-    emailToggle = !emailToggle;
-    emailList.style.display = (emailToggle) ? '' : 'none';
+    nav.expandedFlows[name].subs = !nav.expandedFlows[name].subs;
+    emailList.style.display = (nav.expandedFlows[name].subs) ? '' : 'none';
   }
 
   let addEmailDiv = document.createElement('div');
@@ -258,17 +275,21 @@ const createFlow = (name, flow, book, subscribers) => {
   expansion.appendChild(areYouSure);
   expansion.appendChild(emailDiv);
 
-
-  let expanded = false;
   title.innerHTML = book.metadata.title;
+
+  if (nav.expandedFlows[name]) {
+    title.className = "pa3 ma0 bg-near-white pointer";
+    expansion.style.display = '';
+  }
   title.onclick = () => {
-    expanded = !expanded;
-    if (expanded) {
-      title.className = "pa3 ma0 bg-near-white pointer";
-      expansion.style.display = ''
-    } else {
+    if (nav.expandedFlows[name]) {
       expansion.style.display = 'none'
       title.className = "pa3 ma0 pointer";
+      delete nav.expandedFlows[name]
+    } else {
+      title.className = "pa3 ma0 bg-near-white pointer";
+      expansion.style.display = '';
+      nav.expandedFlows[name] = {cancel: false, subs: false};
     }
   }
   node.appendChild(title);
@@ -717,7 +738,6 @@ const createBook = (notebook, templates, mailer) => {
 
 
   submit.onclick = () => {
-    console.log('clicked');
     let res = resourceFromPath(notebook.resource);
     let radioValue = document.querySelector('input[name="sitetemplate"]:checked').value;
     let mailingList = Object.keys(emailList).concat(processCSV(csv));
@@ -755,30 +775,17 @@ const createBook = (notebook, templates, mailer) => {
       }
     };
 
-    pipePoke(pipeAction).then((res) => {
-      if (!mailCheckBool) {
-        addFlowBtn.style.display = '';
-        manageExisting.style.display = '';
-        cancelAdd.style.display = 'none';
-        notebookList.style.display = 'none';
-        return;
-      }
+    pipePoke(pipeAction).then((r) => {
+      nav.expandAdd = false;
+      nav.expandedBooks = {};
+      nav.expandedFlows[res.name] = {cancel: false, subs: false};
+      if (!mailCheckBool) return;
       if (editCreds) {
-        mailerPoke(mailerCredsAction).then((res) => {
-          mailerPoke(mailerListAction).then((res) => {
-            addFlowBtn.style.display = '';
-            manageExisting.style.display = '';
-            cancelAdd.style.display = 'none';
-            notebookList.style.display = 'none';
-          });
+        mailerPoke(mailerCredsAction).then((r) => {
+          mailerPoke(mailerListAction);
         });
       } else {
-        mailerPoke(mailerListAction).then((res) => {
-          addFlowBtn.style.display = '';
-          manageExisting.style.display = '';
-          cancelAdd.style.display = 'none';
-          notebookList.style.display = 'none';
-        });
+        mailerPoke(mailerListAction)
       }
     });
   }
@@ -812,13 +819,20 @@ const createBook = (notebook, templates, mailer) => {
 
   node.appendChild(titleDiv);
 
+  if (nav.expandedBooks[notebook.resource]) {
+    node.appendChild(step1);
+    titleDiv.className = "pa3 ma0 bg-near-white pointer flex justify-between";
+  }
+
   titleDiv.onclick = () => {
     if (stage == 0) {
       titleDiv.className = "pa3 ma0 bg-near-white pointer flex justify-between";
       node.appendChild(step1);
+      nav.expandedBooks[notebook.resource] = true;
       stage = 1;
     } else {
       titleDiv.className = "pa3 ma0 pointer flex justify-between";
+      delete nav.expandedBooks[notebook.resource];
       stage = 0;
       node.removeChild(step1)
     }
@@ -833,6 +847,18 @@ const publishRender = (state) => {
   let books = state.notebooks;
   let mailer = state.mailer;
 
+  if (nav.expandAdd) {
+    addFlowBtn.style.display = 'none';
+    manageExisting.style.display = 'none';
+    cancelAdd.style.display = '';
+    notebookList.style.display = '';
+  } else {
+    addFlowBtn.style.display = '';
+    manageExisting.style.display = '';
+    cancelAdd.style.display = 'none';
+    notebookList.style.display = 'none';
+  }
+
   manageExisting.textContent = '';
   let flowRes = [];
   if ((flows == null) || (Object.keys(flows).length === 0)) {
@@ -845,7 +871,7 @@ const publishRender = (state) => {
       let book = books[resString] || null;
       let subs = (mailer["mailing-lists"]) ?
         mailer["mailing-lists"][f] || null : null;
-      let flowNode = createFlow(f, flows[f], book, subs);
+      let flowNode = createFlow(f, flows[f], book, subs, nav);
 
       flowRes.push(resString);
       manageExisting.appendChild(flowNode);
@@ -861,7 +887,7 @@ const publishRender = (state) => {
     Object.keys(books).forEach((f) => {
       let res = books[f].resource;
       if (flowRes.indexOf(res) === -1) {
-        let bookNode = createBook(books[f], templates, mailer);
+        let bookNode = createBook(books[f], templates, mailer, nav);
         notebookList.appendChild(bookNode);
       }
     });
