@@ -123,6 +123,7 @@ const createFlow = (name, flow, book, subscribers) => {
   niceLink.href = (b.site)
     ? `http://${b.site}${b.path}`
     : flow.site.binding.path;
+  niceLink.target = "_blank"
   nlDiv.className = "mt3";
   nlDiv.appendChild(niceLink);
   expansion.appendChild(nlDiv);
@@ -130,7 +131,8 @@ const createFlow = (name, flow, book, subscribers) => {
   let elDiv = document.createElement('div');
   let editLink = document.createElement('a');
   editLink.innerHTML = "Write";
-  editLink.href = "";
+  editLink.href = `/apps/landscape/~landscape${book.group}/resource/publish${book.resource}`;
+  editLink.target = "_blank"
   editLink.className="black underline pointer";
   elDiv.className = "mt3";
   elDiv.appendChild(editLink);
