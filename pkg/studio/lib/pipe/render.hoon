@@ -186,17 +186,17 @@
 ++  contents-to-marl
   |=  contents=(list content)
   ^-  marl
-  (turn contents content-to-manx)
+  (murn contents content-to-manx)
 ::
 ++  content-to-manx
   |=  =content
-  ^-  manx
+  ^-  (unit manx)
   ?-  -.content
-    %text       (text-to-manx text.content)
-    %mention    !! :: (mention-to-manx content)
-    %url        (url-to-manx url.content)
-    %code       !! :: (code-to-manx content)
-    %reference  !! :: (reference-to-manx content)
+    %text       `(text-to-manx text.content)
+    %mention    `(text-to-manx (scot %p ship.content))
+    %url        `(url-to-manx url.content)
+    %code       `(text-to-manx expression.content)
+    %reference  ~ :: (reference-to-manx content)
   ==
 ::
 ++  text-to-manx
