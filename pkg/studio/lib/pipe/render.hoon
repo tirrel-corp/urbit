@@ -249,7 +249,7 @@
 ++  render-image
   |=  url=@t
   ^-  manx
-  ;img(src (trip url), width "700px");
+  ;img(src (trip url), width "100%");
 ::
 ++  render-audio
   |=  [type=@t url=@t]
