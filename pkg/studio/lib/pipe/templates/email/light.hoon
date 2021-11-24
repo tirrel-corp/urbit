@@ -34,7 +34,7 @@
       ==
     ==
   =/  home-url
-    (trip (cat 3 (need site.u.site-binding) (spud path.u.site-binding)))
+    (trip (cat 3 (need site.u.site-binding) (spat path.u.site-binding)))
   ;div
     =style  "border-bottom: 1px solid #aaaaaa; margin-bottom: 2rem;"
     ;a(href "{home-url}", class "link", style "text-decoration: none")
