@@ -319,6 +319,7 @@ const createBook = (notebook, templates, mailer) => {
   let emailValid = false;
   let templateValid = false;
   let mailCheckBool = false;
+  let comCheckBool = false;
 
   let node = document.createElement('div');
   node.className = "mt2 ba br1 mw6 flex-column b--black bg-white";
@@ -422,7 +423,7 @@ const createBook = (notebook, templates, mailer) => {
 //== Template choice ===========================================================
 //
   let templateDiv = document.createElement('div');
-  templateDiv.className = "w-100 pv3 flex justify-between bt"
+  templateDiv.className = "w-100 pt3 flex justify-between bt"
 
   let t = document.createElement('p');
   t.className = 'ma2'
@@ -462,6 +463,21 @@ const createBook = (notebook, templates, mailer) => {
 
     radioCol.appendChild(radioRow);
   });
+
+  let comDiv = document.createElement('div');
+  comDiv.className = "flex ma2 mb3";
+  let comText = document.createElement('p');
+  comText.innerHTML = "Display comments";
+  comText.className = "ma0";
+  let comCheck = document.createElement('input');
+  comCheck.className = "ml2 mt1";
+  comCheck.type = "checkbox"
+  comCheck.onclick = (e) => {
+    comCheckBool = !comCheckBool;
+  }
+  comDiv.appendChild(comText);
+  comDiv.appendChild(comCheck);
+
 
 //== Enable email checkbox =====================================================
 //
@@ -754,6 +770,7 @@ const createBook = (notebook, templates, mailer) => {
               site: host.value,
               path: path.value
             },
+            comments: comCheckBool,
           },
           email: 'light',
         }
@@ -812,6 +829,7 @@ const createBook = (notebook, templates, mailer) => {
   step1.appendChild(hostDiv);
   step1.appendChild(pathDiv);
   step1.appendChild(templateDiv);
+  step1.appendChild(comDiv);
   step1.appendChild(mailCheckDiv);
   step1.appendChild(helpDiv);
   step1.appendChild(step2);
