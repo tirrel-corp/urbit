@@ -757,6 +757,7 @@ const createBook = (notebook, templates, mailer) => {
     let res = resourceFromPath(notebook.resource);
     let radioValue = document.querySelector('input[name="sitetemplate"]:checked').value;
     let mailingList = Object.keys(emailList).concat(processCSV(csv));
+    let emailTemplate = (mailCheckBool) ? 'light' : null;
 
     let pipeAction = {
       add: {
@@ -772,7 +773,7 @@ const createBook = (notebook, templates, mailer) => {
             },
             comments: comCheckBool,
           },
-          email: 'light',
+          email: emailTemplate,
         }
       }
     };
